@@ -1,29 +1,72 @@
 import time
-
+import sqlite3
 import pandas as pd
 import serial
 import re
+
 
 # Konfiguration
 port = "COM3"  # Passe an deinen tatsächlichen COM-Port an
 baudrate = 115200  # DWM1001-Standard
 timeout = 1  # Sekunde
+def connect():
+    conn = sqlite3.connect("test_data.db")
+    return conn
+
+
+def setup_db():
+    conn = connect()
+    cur = conn.cursor()
+    cur.execute('''
+                        CREATE TABLE IF NOT EXISTS location_data_no_stationary
+                        (
+                            id           INTEGER PRIMARY KEY,
+                            timestamp    INTEGER,
+                            anchor_id    TEXT,
+                            position     TEXT,
+                            distance     REAL,
+                            time_taken   INTEGER,
+                            est_position TEXT
+                        )
+                        ''')
+    # Truncate the table if it exists
+    cur.execute('DELETE FROM location_data_no_stationary')
+    conn.commit()
+    conn.close()
+
+def insert_data(timestamp, anchor_id, position, distance, time_taken, est_position):
+    conn = connect()
+    cur = conn.cursor()
+
+    cur.execute('''
+                INSERT INTO location_data 
+                (timestamp, anchor_id, position, distance, time_taken, est_position) 
+                VALUES (?, ?, ?, ?, ?, ?)
+                ''', (timestamp, anchor_id, position, distance, time_taken, est_position))
+    conn.commit()
+    conn.close()
+
+
+def setup_uart(ser):
+    time.sleep(1)
+    ser.write(b'\r')
+    time.sleep(1)
+    ser.write(b'\r\r')
+    time.sleep(3)
+    print(ser.read_all().decode())
+    ser.write(b'les\r')
+    time.sleep(1)
 
 try:
     with serial.Serial(port, baudrate, timeout=timeout) as ser:
         print(f"✅ Verbindung zu {port} erfolgreich hergestellt.")
-        start_time = time.perf_counter_ns()
         # Kleines Delay, damit DWM1001 bereit ist
-        time.sleep(1)
 
-        # Sende einmal Enter (wie bei PuTTY)
-        ser.write(b'\r')
-        time.sleep(1)
-        ser.write(b'\r\r')
-        time.sleep(3)
-        print(ser.read_all().decode())
-        ser.write(b'les\r')
-        time.sleep(1)
+        setup_db()
+        setup_uart(ser)
+        conn = connect()
+        cur = conn.cursor()
+
         df = pd.DataFrame(columns=['timestamp', 'id', 'position', 'distance', 'time_taken', 'est_pos'])
         while True:
 
@@ -53,7 +96,8 @@ try:
                         id = anchor_data['id']
                         position = anchor_data['position']
                         distance = anchor_data['distance']
-                        data.append([round((timestamp-start_time)/1e6), id, position, distance, time_taken, est_position])
+                        insert_data(timestamp, id, position, distance, time_taken, est_position)
+                        data.append([timestamp, id, position, distance, time_taken, est_position])
 
                 data_df = pd.DataFrame(data, columns=['timestamp', 'id', 'position', 'distance', 'time_taken', 'est_pos'])
                 df = pd.concat([df, data_df], ignore_index=True)
