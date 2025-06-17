@@ -7,11 +7,7 @@ Elaboration by: **Ole Berg, Kristan Böttjer and Lennard Feuerbach**
   <p>
     This repository contains data for a project focused on developing 
     <strong>gesture-based control systems for IoT objects</strong>, such as smart home lamps. 
-    The primary objective is to explore intuitive, movement-based interactions with physical devices using sensor data.
-  </p>
-
-  <p>
-    The central <strong>research question</strong> guiding this project is:
+    The primary objective is to explore intuitive, movement-based interactions with physical devices using sensor data. The central <strong>research question</strong> guiding this project is:
   </p>
 
   <blockquote>
