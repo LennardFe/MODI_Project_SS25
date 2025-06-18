@@ -39,7 +39,7 @@ def insert_data(timestamp, anchor_id, position, distance, time_taken, est_positi
     cur = conn.cursor()
 
     cur.execute('''
-                INSERT INTO location_data 
+                INSERT INTO location_data_no_stationary
                 (timestamp, anchor_id, position, distance, time_taken, est_position) 
                 VALUES (?, ?, ?, ?, ?, ?)
                 ''', (timestamp, anchor_id, position, distance, time_taken, est_position))
