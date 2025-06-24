@@ -42,7 +42,7 @@ void setup() {
   }
 
   // set advertised local name and services UUID:
-  BLE.setLocalName("MODI_SW_Gyro");
+  BLE.setLocalName("MODI_SW_IMU");
   imuService.addCharacteristic(gyroCharacteristic);
   imuService.addCharacteristic(accelCharacteristic);
   BLE.setAdvertisedService(imuService);

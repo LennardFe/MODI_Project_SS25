@@ -4,16 +4,18 @@ import time
 
 # This file tests the threading capabilities of Python with SQLite
 
+
 def connect():
     con = sqlite3.connect("tutorial.db")
 
-    return con 
+    return con
+
 
 def setup():
     con = connect()
     cur = con.cursor()
 
-    cur.execute('''
+    cur.execute("""
                 CREATE TABLE IF NOT EXISTS location_data 
                 (id INTEGER PRIMARY KEY, 
                 timestamp INTEGER,
@@ -22,38 +24,44 @@ def setup():
                 distance REAL,
                 time_taken INTEGER,
                 est_position TEXT)
-                ''')
+                """)
 
     # Truncate the table if it exists
-    cur.execute('DELETE FROM location_data')
+    cur.execute("DELETE FROM location_data")
 
     con.commit()
     con.close()
+
 
 def insert_data(timestamp, anchor_id, position, distance, time_taken, est_position):
     con = connect()
     cur = con.cursor()
 
-    cur.execute('''
+    cur.execute(
+        """
                 INSERT INTO location_data 
                 (timestamp, anchor_id, position, distance, time_taken, est_position) 
                 VALUES (?, ?, ?, ?, ?, ?)
-                ''', (timestamp, anchor_id, position, distance, time_taken, est_position))
+                """,
+        (timestamp, anchor_id, position, distance, time_taken, est_position),
+    )
     con.commit()
+
 
 def insert_demo_data():
     while True:
-        timestamp = round(time.perf_counter_ns()/1e6)
-        anchor_id = 'A1'
-        position = '[1.0, 2.0, 3.0]'
+        timestamp = round(time.perf_counter_ns() / 1e6)
+        anchor_id = "A1"
+        position = "[1.0, 2.0, 3.0]"
         distance = 4.5
         time_taken = 100
-        est_position = '[1.1, 2.1, 3.1]'
-        
+        est_position = "[1.1, 2.1, 3.1]"
+
         insert_data(timestamp, anchor_id, position, distance, time_taken, est_position)
 
-        timestamp_after_insert = round(time.perf_counter_ns()/1e6)
-        time.sleep(0.1 - (timestamp_after_insert - timestamp)/1.e3)
+        timestamp_after_insert = round(time.perf_counter_ns() / 1e6)
+        time.sleep(0.1 - (timestamp_after_insert - timestamp) / 1.0e3)
+
 
 def read_from_demo_data():
     con = connect()
@@ -61,12 +69,17 @@ def read_from_demo_data():
 
     while True:
         time.sleep(2)
-        rows = cur.execute('SELECT timestamp FROM location_data ORDER BY timestamp DESC LIMIT 1').fetchone()
+        rows = cur.execute(
+            "SELECT timestamp FROM location_data ORDER BY timestamp DESC LIMIT 1"
+        ).fetchone()
 
-        current_time = round(time.perf_counter_ns()/1e6)
+        current_time = round(time.perf_counter_ns() / 1e6)
 
         difference = current_time - rows[0] if rows else None
-        print(f"Current time: {current_time}, Last timestamp in DB: {rows[0] if rows else 'None'}, Difference: {difference} ms")
+        print(
+            f"Current time: {current_time}, Last timestamp in DB: {rows[0] if rows else 'None'}, Difference: {difference} ms"
+        )
+
 
 setup()
 threading.Thread(target=insert_demo_data, daemon=False).start()
