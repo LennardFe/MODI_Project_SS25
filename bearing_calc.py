@@ -12,7 +12,7 @@ anchors = {
     "A3": np.array(A3),
 }
 
-T = np.array((1, 1))
+T = np.array((2, 2))
 ini_vec = np.array((-1, 1))
 
 def get_rotation_matrix(alpha):
@@ -30,7 +30,8 @@ def calc_angle(x, y):
 def calc_bearing(current_heading_v, a, t):
     return math.degrees(calc_angle(current_heading_v, a - t))
 
-def get_bearings(anchors, ini_vec, theta):
+def get_bearings(anchors, calibration_anchor, theta, t):
+    ini_vec = anchors[calibration_anchor] - INITIAL_POSITION
     initial_heading = -calc_angle(np.array([0, 1]), ini_vec)
     print("Initial heading: {}".format(math.degrees(initial_heading)))
 
@@ -39,9 +40,10 @@ def get_bearings(anchors, ini_vec, theta):
     print("Current heading v: {}".format(current_heading_v))
     bearings = {}
     for anchor_name, anchor in anchors.items():
-        bearings[anchor_name] = calc_bearing(current_heading_v, anchor, T)
+        bearings[anchor_name] = calc_bearing(current_heading_v, anchor, t)
     print("Bearings: {}".format(bearings))
+
     return bearings
 
-
-bearings = get_bearings(anchors, ini_vec, theta)
+INITIAL_POSITION = np.array([1, 1])
+bearings = get_bearings(anchors, "A1", theta, T)
