@@ -80,7 +80,7 @@ try:
         while True:
             response = ser.readline().decode("utf-8")
             if response != "" and "[" in response:
-                timestamp = time.perf_counter_ns()
+                timestamp = time.time_ns()
                 strings = response.split(" ")
                 data = []
                 time_taken = 0

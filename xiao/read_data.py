@@ -73,7 +73,7 @@ def insert_data(table, timestamp, x, y, z):
 def make_handler(type):
     def handler(sender, data):
         value = struct.unpack("<fff", data)
-        insert_data(type, time.perf_counter_ns(),*value)
+        insert_data(type, time.time_ns(), *value)
         print(f"{type}: {value}")
 
     return handler
