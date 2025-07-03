@@ -1,5 +1,5 @@
-from bearing_calc import get_bearings
-from distance_calc import get_distance_changes
+from calculations.bearing_calc import get_bearings
+from calculations.distance_calc import get_distance_changes
 import json
 import numpy as np
 import math

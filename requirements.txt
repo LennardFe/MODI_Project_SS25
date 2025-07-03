@@ -2,3 +2,4 @@ pyserial
 pandas
 bleak
 numpy
+playsound3

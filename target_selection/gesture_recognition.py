@@ -1,7 +1,6 @@
+from selection_manager import select_target
 import time
 import sqlite3
-from target_selection import select_target
-
 
 def connect():
     conn = sqlite3.connect("test_data.db")
