@@ -35,7 +35,7 @@ def select_target(gesture_start, gesture_end):
 
 
 def read_anchor_config():
-    with open("anchor_config.json", "r") as f:
+    with open("assets/anchor_config.json", "r") as f:
         config = json.load(f)
     anchors = {}
     for anchor in config:
