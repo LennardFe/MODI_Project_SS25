@@ -5,11 +5,11 @@ import numpy as np
 import math
 
 CALIBRATION_ANCHOR = "DC0F"  # globally set at beginning
-THETA = 121  # globally set by another thread
+INITIAL_POSITION = np.array([0, 0, 0])  # globally set at beginning
 CURRENT_POSITION = np.array(
     [0, 0, 0]
 )  # globally set by another thread or queried from db
-INITIAL_POSITION = np.array([0, 0, 0])  # globally set at beginning
+THETA = 121  # globally set by another thread
 
 
 def select_target(gesture_start, gesture_end):
@@ -17,9 +17,9 @@ def select_target(gesture_start, gesture_end):
     bearings = get_bearings(
         anchors,
         CALIBRATION_ANCHOR,
-        INITIAL_POSITION,
+        INITIAL_POSITION[:2],
         math.radians(THETA),
-        CURRENT_POSITION,
+        CURRENT_POSITION[:2],
     )
     distance_changes = get_distance_changes(gesture_start, gesture_end)
     anchor_min_bearing = min(bearings)

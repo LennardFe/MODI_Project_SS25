@@ -3,91 +3,96 @@ from bleak import BleakClient, BleakScanner
 import struct
 import sqlite3
 import time
+from queue import Queue
+from threading import Thread
 
 DEVICE_NAME = "MODI_SW_IMU"
 GYRO_SERVICE_UUID = "09451b74-8500-4b3d-9090-bdf3187a98dd"
 ACCEL_SERVICE_UUID = "cc55d02b-0890-43ff-9c6b-c078d26a7d3f"
 
-
-def connect():
-    conn = sqlite3.connect("../test_data.db")
-    return conn
+db_queue = Queue()
 
 
 def setup_db():
-    conn = connect()
+    conn = sqlite3.connect("test_data.db")
     cur = conn.cursor()
     cur.execute("""
-                        CREATE TABLE IF NOT EXISTS gyro_data
-                        (
-                            id           INTEGER PRIMARY KEY,
-                            timestamp    INTEGER,
-                            x            REAL,
-                            y            REAL,
-                            z            REAL
-                        )
-                        """)
-    # Truncate the table if it exists
+        CREATE TABLE IF NOT EXISTS gyro_data (
+            id INTEGER PRIMARY KEY,
+            timestamp INTEGER,
+            x REAL,
+            y REAL,
+            z REAL
+        )
+    """)
     cur.execute("DELETE FROM gyro_data")
+
     cur.execute("""
-                CREATE TABLE IF NOT EXISTS accel_data
-                (
-                    id        INTEGER PRIMARY KEY,
-                    timestamp INTEGER,
-                    x         REAL,
-                    y         REAL,
-                    z         REAL
-                )
-                """)
-    # Truncate the table if it exists
+        CREATE TABLE IF NOT EXISTS accel_data (
+            id INTEGER PRIMARY KEY,
+            timestamp INTEGER,
+            x REAL,
+            y REAL,
+            z REAL
+        )
+    """)
     cur.execute("DELETE FROM accel_data")
     conn.commit()
     conn.close()
 
 
-def insert_data(table, timestamp, x, y, z):
-    conn = connect()
+def db_worker():
+    conn = sqlite3.connect("test_data.db")
     cur = conn.cursor()
-    if str(table).lower() == "gyro":
+    while True:
+        item = db_queue.get()
+        if item is None:
+            break
+        table, timestamp, x, y, z = item
         cur.execute(
-            """
-                    INSERT INTO gyro_data
-                    (timestamp, x, y, z) 
-                    VALUES (?, ?, ?, ?)
-                    """,
-            (timestamp, x, y, z),
+            f"INSERT INTO {table} (timestamp, x, y, z) VALUES (?, ?, ?, ?)",
+            (timestamp, x, y, z)
         )
-    elif str(table).lower() == "accel":
-        cur.execute(
-            """
-            INSERT INTO accel_data
-                (timestamp, x, y, z)
-            VALUES (?, ?, ?, ?)
-            """,
-            (timestamp, x, y, z),
-        )
-    conn.commit()
+        conn.commit()
     conn.close()
 
 
-def make_handler(type):
+def make_gyro_handler():
     def handler(sender, data):
         value = struct.unpack("<fff", data)
-        insert_data(type, time.time_ns(), *value)
-        print(f"{type}: {value}")
-
+        db_queue.put(("gyro_data", time.time_ns(), *value))
     return handler
 
 
-async def main():
+def make_accel_handler():
+    def handler(sender, data):
+        value = struct.unpack("<fff", data)
+        db_queue.put(("accel_data", time.time_ns(), *value))
+    return handler
+
+
+async def read_data():
     setup_db()
-    device = await BleakScanner.find_device_by_name(DEVICE_NAME)
+    device = await BleakScanner.find_device_by_address("B0:6D:06:5A:59:D1")
+    if not device:
+        print("Device not found")
+        return
 
     async with BleakClient(device) as client:
-        await client.start_notify(GYRO_SERVICE_UUID, make_handler("Gyro"))
-        await client.start_notify(ACCEL_SERVICE_UUID, make_handler("Accel"))
+        await client.start_notify(GYRO_SERVICE_UUID, make_gyro_handler())
+        await client.start_notify(ACCEL_SERVICE_UUID, make_accel_handler())
+        print("Notifications started. Listening...")
 
-        await asyncio.Event().wait()
+        await asyncio.Event().wait()  # block forever
 
 
-asyncio.run(main())
+def main():
+    # Starte DB-Worker-Thread
+    Thread(target=db_worker, daemon=True).start()
+
+    # Starte BLE-Loop
+    asyncio.run(read_data())
+
+
+if __name__ == "__main__":
+    main()

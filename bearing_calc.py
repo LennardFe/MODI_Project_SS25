@@ -6,15 +6,14 @@ A1 = (0, 2)
 A2 = (1, 0)
 A3 = (2, 1)
 
-theta = math.radians(210)
+theta = math.radians(30)
 anchors = {
     "A1": np.array(A1),
     "A2": np.array(A2),
     "A3": np.array(A3),
 }
 
-T = np.array((1, 3))
-ini_vec = np.array((-1, 1))
+T = np.array((1, 1))
 
 
 def get_rotation_matrix(alpha):
@@ -61,4 +60,4 @@ def get_bearings(anchors, calibration_anchor, initial_position, theta, t):
 
 if __name__ == "__main__":
     INITIAL_POSITION = np.array([1, 1])
-    bearings = get_bearings(anchors, "A1", theta, T)
+    bearings = get_bearings(anchors, "A1", INITIAL_POSITION, theta, T)

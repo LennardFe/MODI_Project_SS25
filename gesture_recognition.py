@@ -11,8 +11,7 @@ def connect():
 def monitor_gesture():
     conn = connect()
     while True:
-        arm_stretched = check_last_z_accelerations(conn)
-        if arm_stretched:
+        if check_last_z_accelerations(conn):
             gesture_end = time.time_ns()
             cur = conn.cursor()
             cur.execute(
@@ -32,7 +31,13 @@ def check_last_z_accelerations(conn):
                                           FROM accel_data
                                           ORDER BY timestamp DESC
                                           LIMIT 10""").fetchall()
-    for z in last_z_accelerations:
-        if z[0] > 1.05 or z[0] < 0.9:
-            return False
-    return True
+    if len(last_z_accelerations) > 0:
+        for z in last_z_accelerations:
+            print(z[0])
+            if z[0] > 1.05 or z[0] < 0.9:
+                return False
+        print("Gesture recognized.")
+        return True
+    else:
+        return False
+
