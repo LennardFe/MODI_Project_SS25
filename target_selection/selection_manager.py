@@ -3,12 +3,9 @@ from calculations.distance_calc import get_distance_changes
 import json
 import numpy as np
 import math
+import sqlite3
 
 CALIBRATION_ANCHOR = "DC0F"  # globally set at beginning
-INITIAL_POSITION = np.array([0, 0, 0])  # globally set at beginning
-CURRENT_POSITION = np.array(
-    [0, 0, 0]
-)  # globally set by another thread or queried from db
 THETA = 121  # globally set by another thread
 
 
@@ -17,9 +14,9 @@ def select_target(gesture_start, gesture_end):
     bearings = get_bearings(
         anchors,
         CALIBRATION_ANCHOR,
-        INITIAL_POSITION[:2],
+        get_initial_position(),
         math.radians(THETA),
-        CURRENT_POSITION[:2],
+        get_current_position(gesture_start),
     )
     distance_changes = get_distance_changes(gesture_start, gesture_end)
     anchor_min_bearing = min(bearings)
@@ -41,6 +38,29 @@ def read_anchor_config():
     for anchor in config:
         anchors[anchor["id"]] = np.array([anchor["x"], anchor["y"], anchor["z"]])
     return anchors
+
+
+def get_initial_position():
+    conn = sqlite3.connect("assets/test_data.db")
+    initial_position = conn.execute(
+        """SELECT est_position FROM location_data ORDER BY timestamp DESC LIMIT 1"""
+    ).fetchone()[0]
+    conn.close()
+    initial_position = str(initial_position).replace("[", "").replace("]", "")
+    initial_position = np.fromstring(initial_position, dtype=float, sep=",")
+    return initial_position[:3]
+
+
+def get_current_position(gesture_end):
+    conn = sqlite3.connect("assets/test_data.db")
+    current_position = conn.execute(
+        """SELECT est_position FROM location_data WHERE timestamp < ? ORDER BY timestamp DESC LIMIT 1""",
+        (gesture_end,),
+    ).fetchone()[0]
+    conn.close()
+    current_position = str(current_position).replace("[", "").replace("]", "")
+    current_position = np.fromstring(current_position, dtype=float, sep=",")
+    return current_position[:3]
 
 
 if __name__ == "__main__":
