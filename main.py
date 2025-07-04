@@ -1,5 +1,6 @@
 from target_selection.gesture_recognition import monitor_gesture
-from sensor_data_handler.data_handler_imu import main
+from sensor_data_handler.data_handler_imu import handle_imu_data
+from sensor_data_handler.data_handler_dwm import handle_uwb_data
 from threading import Thread
 import time
 import sqlite3
@@ -48,4 +49,5 @@ def setup_db():
     conn.close()
 
 
-Thread(target=main).start()
+Thread(target=handle_imu_data).start()
+#Thread(target=handle_uwb_data).start()

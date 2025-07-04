@@ -41,11 +41,11 @@ def parse_location_data(data: bytearray):
         print("❌ Unbekannter Datentyp!")
 
 
-async def main():
+async def read_data():
     async with BleakClient(ADDRESS) as client:
         print("🔗 Verbunden. Lese Location-Daten...")
         data = await client.read_gatt_char(LOCATION_UUID)
         parse_location_data(data)
 
-
-asyncio.run(main())
+def handle_uwb_data():
+    asyncio.run(read_data())

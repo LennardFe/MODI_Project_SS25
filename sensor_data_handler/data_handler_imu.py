@@ -88,7 +88,7 @@ async def read_data():
         await asyncio.Event().wait()  # block forever
 
 
-def main():
+def handle_imu_data():
     # Starte DB-Worker-Thread
     Thread(target=db_worker, daemon=True).start()
 
@@ -97,4 +97,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    handle_imu_data()
