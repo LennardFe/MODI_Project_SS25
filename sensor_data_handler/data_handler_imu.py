@@ -51,7 +51,7 @@ def db_worker():
         table, timestamp, x, y, z = item
         cur.execute(
             f"INSERT INTO {table} (timestamp, x, y, z) VALUES (?, ?, ?, ?)",
-            (timestamp, x, y, z)
+            (timestamp, x, y, z),
         )
         conn.commit()
     conn.close()
@@ -61,6 +61,7 @@ def make_gyro_handler():
     def handler(sender, data):
         value = struct.unpack("<fff", data)
         db_queue.put(("gyro_data", time.time_ns(), *value))
+
     return handler
 
 
@@ -68,6 +69,7 @@ def make_accel_handler():
     def handler(sender, data):
         value = struct.unpack("<fff", data)
         db_queue.put(("accel_data", time.time_ns(), *value))
+
     return handler
 
 

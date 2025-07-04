@@ -2,6 +2,7 @@ from selection_manager import select_target
 import time
 import sqlite3
 
+
 def connect():
     conn = sqlite3.connect("test_data.db")
     return conn
@@ -21,6 +22,7 @@ def monitor_gesture():
             ).fetchone()[0]
             print("Gesture recognized.")
             select_target(gesture_start, gesture_end)
+            conn.close()
             break
 
 
@@ -39,4 +41,3 @@ def check_last_z_accelerations(conn):
         return True
     else:
         return False
-
