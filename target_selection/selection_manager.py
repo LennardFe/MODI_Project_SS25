@@ -43,7 +43,7 @@ def read_anchor_config():
 def get_initial_position():
     conn = sqlite3.connect("assets/test_data.db")
     initial_position = conn.execute(
-        """SELECT est_position FROM location_data ORDER BY timestamp DESC LIMIT 1"""
+        """SELECT est_position FROM location_data ORDER BY timestamp ASC LIMIT 1"""
     ).fetchone()[0]
     conn.close()
     initial_position = str(initial_position).replace("[", "").replace("]", "")

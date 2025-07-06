@@ -14,11 +14,8 @@ def monitor_gesture():
         if check_last_z_accelerations(conn):
             gesture_end = time.time_ns()
             cur = conn.cursor()
-            cur.execute(
-                """SELECT timestamp FROM accel_data WHERE abs(z) < 0.9 AND abs(x) > 0.9 ORDER BY timestamp DESC LIMIT 1"""
-            )
             gesture_start = cur.execute(
-                """SELECT timestamp FROM accel_data WHERE abs(z) < 0.9 AND abs(x) > 0.9 ORDER BY timestamp DESC LIMIT 1"""
+                """SELECT timestamp FROM accel_data WHERE abs(z) < 0.2 AND abs(x) > 0.9 ORDER BY timestamp DESC LIMIT 1"""
             ).fetchone()[0]
             print("Gesture recognized.")
             select_target(gesture_start, gesture_end)
