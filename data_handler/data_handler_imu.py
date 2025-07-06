@@ -30,7 +30,7 @@ def db_worker():
 
 
 def make_gyro_handler():
-    def handler(sender, data):
+    def handler(_, data):
         value = struct.unpack("<fff", data)
         db_queue.put(("gyro_data", time.time_ns(), *value))
 
@@ -38,7 +38,7 @@ def make_gyro_handler():
 
 
 def make_accel_handler():
-    def handler(sender, data):
+    def handler(_, data):
         value = struct.unpack("<fff", data)
         db_queue.put(("accel_data", time.time_ns(), *value))
 
