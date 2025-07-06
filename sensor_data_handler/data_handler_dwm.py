@@ -15,8 +15,7 @@ LOCATION_UUID = "003bbdf2-c634-4b3d-ab56-7ec889b89a37"
 # Queue for database operations
 db_queue = Queue()
 
-# TODO: Anchor names order is switched up for some reason e.g. BB96 --> 96BB
-
+# Read newest data from the queue and write into the database
 def db_worker():
     conn = sqlite3.connect("assets/MODI.db")
     cur = conn.cursor()
@@ -43,7 +42,7 @@ def db_worker():
 
     conn.close()
 
-
+# Parse the location data from the DWM Tag and add to queue
 def parse_location_data(data: bytearray):
     # Get current timestamp in nanoseconds
     timestamp = time.time_ns()  
@@ -57,13 +56,15 @@ def parse_location_data(data: bytearray):
     data_type = data[0]
     print(f"Datatype: {data_type}")
 
-    if data_type == 0:  # Position only
+    # Position only
+    if data_type == 0:  
         x, y, z, est_pos_qf = struct.unpack_from("<iiiB", data, offset=1)
         db_queue.put((timestamp, None, None, None, x, y, z, est_pos_qf))
 
         return
 
-    elif data_type == 1:  # Distances only
+    # Distances only
+    elif data_type == 1: 
         count = data[1]   # Count = Amount of anchors
         offset = 2
 
@@ -82,7 +83,8 @@ def parse_location_data(data: bytearray):
 
         return
 
-    elif data_type == 2:  # Position + Distances
+    # Position + Distances
+    elif data_type == 2:  
         x, y, z, est_pos_qf = struct.unpack_from("<iiiB", data, offset=1)
         count = data[14] # Count = Amount of anchors (Another byte position in this case)         
         offset = 15
@@ -103,14 +105,14 @@ def parse_location_data(data: bytearray):
     else:
         print("Unknown data type")
 
-
+# Create a notification handler for the location data
 def make_location_handler():
     def handler(_, data):
         parse_location_data(data)
 
     return handler
 
-
+# Read data from the DWM Tag and handle notifications
 async def read_data():
     async with BleakClient(ADDRESS) as client:
         print("Connected to DWM Tag")
@@ -119,12 +121,12 @@ async def read_data():
 
         await asyncio.Event().wait()  # block forever until the program is terminated
 
-
+# Handle UWB data processing
 def handle_uwb_data():
-    # Start DB worker thread
+    # Read the data from the queue and write into database
     Thread(target=db_worker, daemon=True).start()
 
-    # Read data from the DWM Tag
+    # Read data from the DWM Tag and write into the queue
     asyncio.run(read_data())
 
 
