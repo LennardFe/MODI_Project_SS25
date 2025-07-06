@@ -13,36 +13,8 @@ ACCEL_SERVICE_UUID = "cc55d02b-0890-43ff-9c6b-c078d26a7d3f"
 db_queue = Queue()
 
 
-def setup_db():
-    conn = sqlite3.connect("test_data.db")
-    cur = conn.cursor()
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS gyro_data (
-            id INTEGER PRIMARY KEY,
-            timestamp INTEGER,
-            x REAL,
-            y REAL,
-            z REAL
-        )
-    """)
-    cur.execute("DELETE FROM gyro_data")
-
-    cur.execute("""
-        CREATE TABLE IF NOT EXISTS accel_data (
-            id INTEGER PRIMARY KEY,
-            timestamp INTEGER,
-            x REAL,
-            y REAL,
-            z REAL
-        )
-    """)
-    cur.execute("DELETE FROM accel_data")
-    conn.commit()
-    conn.close()
-
-
 def db_worker():
-    conn = sqlite3.connect("test_data.db")
+    conn = sqlite3.connect("assets/MODI.db")
     cur = conn.cursor()
     while True:
         item = db_queue.get()
@@ -74,7 +46,6 @@ def make_accel_handler():
 
 
 async def read_data():
-    setup_db()
     device = await BleakScanner.find_device_by_address("B0:6D:06:5A:59:D1")
     if not device:
         print("Device not found")
