@@ -58,7 +58,7 @@ def parse_location_data(data: bytearray):
     print(f"Datatype: {data_type}")
 
     if data_type == 0:  # Position only
-        x, y, z, est_pos_qf = struct.unpack_from("<fffB", data, offset=1)
+        x, y, z, est_pos_qf = struct.unpack_from("<iiiB", data, offset=1)
         db_queue.put((timestamp, None, None, None, x, y, z, est_pos_qf))
 
         return
@@ -83,13 +83,16 @@ def parse_location_data(data: bytearray):
         return
 
     elif data_type == 2:  # Position + Distances
-        x, y, z, est_pos_qf = struct.unpack_from("<fffB", data, offset=1)
+        x, y, z, est_pos_qf = struct.unpack_from("<iiiB", data, offset=1)
         count = data[14] # Count = Amount of anchors (Another byte position in this case)         
         offset = 15
         
         for _ in range(count):
             anchor_id, distance, distance_qf = struct.unpack_from("<HIB", data, offset)
             
+            # Convert anchor_id to hex string
+            anchor_id = f"{anchor_id:04x}".upper()
+
             db_queue.put((timestamp, anchor_id, distance, distance_qf, x, y, z, est_pos_qf))
 
             # Offset for the next anchor

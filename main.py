@@ -9,7 +9,7 @@ from threading import Thread
 setup_db()
 
 # Push location of the anchors to them (from anchor_config.json)
-#setup_dwm() # Doesnt work rn
+setup_dwm()
 
 #Thread(target=handle_imu_data).start()
 Thread(target=handle_uwb_data).start()

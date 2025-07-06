@@ -35,9 +35,9 @@ def setup_db():
                     anchor_id       TEXT,
                     distance        INTEGER,
                     distance_qf     INTEGER,
-                    est_position_x  REAL,
-                    est_position_y  REAL,
-                    est_position_z  REAL,
+                    est_position_x  INTEGER,
+                    est_position_y  INTEGER,
+                    est_position_z  INTEGER,
                     est_position_qf INTEGER
                 )
                 """)
