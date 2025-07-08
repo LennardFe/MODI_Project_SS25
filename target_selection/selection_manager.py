@@ -36,7 +36,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
 
     # Get anchor with minimum distance change (works because decrease is negative)
     anchor_min_distance_change = min(distance_changes, key=distance_changes.get)
-    plot_distance_change(gesture_start, gesture_end)
+    plot_distance_change(gesture_start, gesture_end, anchor_min_distance_change)
 
     if anchor_min_bearing == anchor_min_distance_change:
         print("SUCCESS. CONCURRING OPINIONS.")
@@ -47,17 +47,23 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
         )  # Do more complex score calculation based on relative changes
 
 
-def plot_distance_change(gesture_start, gesture_end):
+def plot_distance_change(gesture_start, gesture_end, anchor_id):
     conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
     cur = conn.cursor()
     plot_start = gesture_start - 2e+9
     plot_end = gesture_end + 2e+9
-    cur.execute("""SELECT timestamp, abs(z) FROM accel_data WHERE timestamp > ? AND timestamp < ? ORDER BY timestamp ASC""", (plot_start, plot_end))
+    
+    # Query distance data for the specific anchor
+    cur.execute("""SELECT timestamp, distance FROM location_data 
+                   WHERE timestamp > ? AND timestamp < ? 
+                   AND anchor_id = ? 
+                   AND distance IS NOT NULL 
+                   ORDER BY timestamp ASC""", (plot_start, plot_end, anchor_id))
     data = cur.fetchall()
     conn.close()
     
     if not data:
-        print("No data found for plotting")
+        print(f"No distance data found for anchor {anchor_id}")
         return
     
     # Extract timestamps and distances
@@ -69,18 +75,25 @@ def plot_distance_change(gesture_start, gesture_end):
     gesture_start_relative = (gesture_start - timestamps[0]) / 1e9
     gesture_end_relative = (gesture_end - timestamps[0]) / 1e9
     
+    # Calculate distance changes relative to the first measurement
+    initial_distance = distances[0]
+    distance_changes = [(d - initial_distance) for d in distances]
+    
     # Create the plot
     plt.figure(figsize=(12, 6))
-    plt.plot(timestamps_relative, distances, 'b-', linewidth=1, label='Distance (abs(z))')
+    plt.plot(timestamps_relative, distance_changes, 'b-', linewidth=1, label=f'Distance Change (Anchor {anchor_id})')
     
     # Add vertical lines for gesture start and end
     plt.axvline(x=gesture_start_relative, color='green', linestyle='--', linewidth=2, label='Gesture Start')
     plt.axvline(x=gesture_end_relative, color='red', linestyle='--', linewidth=2, label='Gesture End')
     
+    # Add horizontal line at y=0 for reference
+    plt.axhline(y=0, color='gray', linestyle='-', alpha=0.3)
+    
     # Customize the plot
     plt.xlabel('Time (seconds)')
-    plt.ylabel('Distance (abs(z))')
-    plt.title('Distance Change Over Time')
+    plt.ylabel('Distance Change (meters)')
+    plt.title(f'Distance Change Over Time - Anchor {anchor_id}')
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
