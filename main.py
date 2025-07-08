@@ -10,7 +10,6 @@ CALIBRATION_ANCHOR = "5C19"
 
 # Drop and recreate the SQLite tables
 setup_db()
-sleep(2)
 
 # Push location to anchors and location mode for tag
 # setup_dwm()
