@@ -1,23 +1,23 @@
 [
   {
     "id": "5C19",
-    "ble_address": "XXXXX",
-    "x": 0.0,
-    "y": 0.0,
-    "z": 0.0
+    "ble_address": "CF:7B:DB:70:A4:F8",
+    "x": 0,
+    "y": 0,
+    "z": 0
   },
   {
     "id": "DC0F",
-    "ble_address": "XXXXX",
-    "x": 0.0,
-    "y": 0.0,
-    "z": 0.0
+    "ble_address": "DA:6F:A6:77:1D:52",
+    "x": 0,
+    "y": 1800,
+    "z": 0
   },
   {
     "id": "96BB",
-    "ble_address": "XXXXX",
-    "x": 0.0,
-    "y": 0.0,
-    "z": 0.0
+    "ble_address": "E0:CE:87:A4:1A:F4",
+    "x": -1500,
+    "y": 2800,
+    "z": 0
   }
 ]

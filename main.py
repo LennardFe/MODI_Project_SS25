@@ -1,53 +1,15 @@
-from target_selection.gesture_recognition import monitor_gesture
-from sensor_data_handler.data_handler_imu import handle_imu_data
-from sensor_data_handler.data_handler_dwm import handle_uwb_data
+#from target_selection.gesture_recognition import monitor_gesture
+from data_handler.data_handler_imu import handle_imu_data
+from data_handler.data_handler_dwm import handle_uwb_data
+from setup_files.setup_dwm import setup_dwm
+from setup_files.setup_db import setup_db
 from threading import Thread
-import time
-import sqlite3
 
+# Drop and recreate the SQLite tables
+setup_db()
 
-def setup_db():
-    conn = sqlite3.connect("assets/MODI.db")
-    cur = conn.cursor()
-    cur.execute("""DROP TABLE IF EXISTS gyro_data""")
-    cur.execute("""DROP TABLE IF EXISTS accel_data""")
-    cur.execute("""DROP TABLE IF EXISTS location_data""")
+# Push location to anchors and location mode for tag
+setup_dwm()
 
-    cur.execute("""
-                CREATE TABLE IF NOT EXISTS gyro_data
-                (
-                    id        INTEGER PRIMARY KEY,
-                    timestamp INTEGER,
-                    x         REAL,
-                    y         REAL,
-                    z         REAL
-                )
-                """)
-    cur.execute("""
-                CREATE TABLE IF NOT EXISTS accel_data
-                (
-                    id        INTEGER PRIMARY KEY,
-                    timestamp INTEGER,
-                    x         REAL,
-                    y         REAL,
-                    z         REAL
-                )
-                """)
-    cur.execute("""
-                CREATE TABLE IF NOT EXISTS location_data
-                (
-                    id           INTEGER PRIMARY KEY,
-                    timestamp    INTEGER,
-                    anchor_id    TEXT,
-                    position     TEXT,
-                    distance     REAL,
-                    time_taken   INTEGER,
-                    est_position TEXT
-                )
-                """)
-    conn.commit()
-    conn.close()
-
-
-Thread(target=handle_imu_data).start()
-#Thread(target=handle_uwb_data).start()
+#Thread(target=handle_imu_data).start()
+Thread(target=handle_uwb_data).start()

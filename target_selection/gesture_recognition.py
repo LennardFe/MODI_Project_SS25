@@ -11,33 +11,43 @@ def connect():
 def monitor_gesture():
     conn = connect()
     while True:
-        if check_last_z_accelerations(conn):
+        if check_last_axis_acceleration(conn, "z"):
             gesture_end = time.time_ns()
             cur = conn.cursor()
-            cur.execute(
-                """SELECT timestamp FROM accel_data WHERE abs(z) < 0.9 AND abs(x) > 0.9 ORDER BY timestamp DESC LIMIT 1"""
-            )
             gesture_start = cur.execute(
-                """SELECT timestamp FROM accel_data WHERE abs(z) < 0.9 AND abs(x) > 0.9 ORDER BY timestamp DESC LIMIT 1"""
+                """SELECT timestamp FROM accel_data WHERE abs(z) < 0.2 AND abs(x) > 0.9 ORDER BY timestamp DESC LIMIT 1"""
             ).fetchone()[0]
             print("Gesture recognized.")
+            conn.close()
             select_target(gesture_start, gesture_end)
+            break
+
+    monitor_arm_down()
+            
+
+def monitor_arm_down():
+    conn = connect()
+    while True:
+        if check_last_axis_acceleration(conn, "x"):
+            print("Arm down gesture recognized.")
             conn.close()
             break
 
+    monitor_gesture()
 
-def check_last_z_accelerations(conn):
+
+def check_last_axis_acceleration(conn, axis):
     cur = conn.cursor()
-    last_z_accelerations = cur.execute("""SELECT abs(z)
+    last_axis_accelerations = cur.execute("""SELECT abs(?)
                                           FROM accel_data
                                           ORDER BY timestamp DESC
-                                          LIMIT 10""").fetchall()
-    if len(last_z_accelerations) > 0:
-        for z in last_z_accelerations:
-            print(z[0])
-            if z[0] > 1.05 or z[0] < 0.9:
+                                          LIMIT 10""", (axis,),).fetchall()
+    if len(last_axis_accelerations) > 0:
+        for a in last_axis_accelerations:
+            print(a[0])
+            if a[0] > 1.05 or a[0] < 0.9:
                 return False
-        print("Gesture recognized.")
         return True
     else:
         return False
+    
