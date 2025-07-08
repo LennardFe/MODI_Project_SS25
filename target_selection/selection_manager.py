@@ -1,5 +1,5 @@
 from target_selection.calculations.bearing_calc import get_bearings
-from target_selection.calculations.distance_calc import get_distance_changes
+from target_selection.calculations.distance_calc import get_distance_changesv2
 from target_selection.calculations.theta_calc import get_theta
 import json
 import numpy as np
@@ -12,7 +12,7 @@ THETA = 0  # globally set by another thread (Initial Richtung + Theta) ~= Headin
 
 def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
     print("Selecting Target")
-    print(f"Duration of gesture: {(gesture_end - gesture_start)*1.0e-6}")
+    print(f"Duration of gesture: {(gesture_end - gesture_start) * 1.0e-6}")
 
     theta = get_theta()
     print(f"Theta: {theta}")
@@ -27,7 +27,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
     )
 
     # Get the distance changes from the gesture start to the gesture end
-    distance_changes = get_distance_changes(gesture_start, gesture_end)
+    distance_changes = get_distance_changesv2(gesture_start, gesture_end)
 
     print("Bearings: {}".format(bearings))
     print("Distance changes: {}".format(distance_changes))
@@ -38,12 +38,13 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
     anchor_min_distance_change = min(distance_changes, key=distance_changes.get)
     plot_distance_change(gesture_start, gesture_end)
 
-
     if anchor_min_bearing == anchor_min_distance_change:
         print("SUCCESS. CONCURRING OPINIONS.")
         print(f"Selected Target: {anchor_min_bearing}")
     else:
-        print("FAILURE. DIFFERING OPINIONS.") # Do more complex score calculation based on relative changes
+        print(
+            "FAILURE. DIFFERING OPINIONS."
+        )  # Do more complex score calculation based on relative changes
 
 
 def plot_distance_change(gesture_start, gesture_end):
@@ -97,6 +98,7 @@ def read_anchor_config():
         anchors[anchor["id"]] = np.array([anchor["x"], anchor["y"]])
     return anchors
 
+
 # First ever position of the tag, this is where we calibrated the tag to
 def get_initial_position():
     conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
@@ -105,6 +107,7 @@ def get_initial_position():
     ).fetchone()
     conn.close()
     return np.array(initial_position)
+
 
 # Get last known position of the tag before the gesture started
 def get_current_position(gesture_start):

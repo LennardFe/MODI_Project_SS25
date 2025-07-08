@@ -27,7 +27,7 @@ def monitor_gesture(CALIBRATION_ANCHOR):
             break
 
     monitor_arm_down(CALIBRATION_ANCHOR)
-            
+
 
 def monitor_arm_down(CALIBRATION_ANCHOR):
     conn = connect()
@@ -59,6 +59,7 @@ def check_last_axis_acceleration(conn, axis):
         return True
     else:
         return False
+
 
 if __name__ == "__main__":
     monitor_gesture()

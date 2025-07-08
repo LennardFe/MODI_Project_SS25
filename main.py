@@ -13,7 +13,7 @@ setup_db()
 sleep(2)
 
 # Push location to anchors and location mode for tag
-#setup_dwm()
+# setup_dwm()
 
 Thread(target=handle_imu_data).start()
 Thread(target=handle_uwb_data).start()
