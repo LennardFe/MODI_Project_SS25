@@ -1,5 +1,5 @@
 from target_selection.calculations.bearing_calc import get_bearings
-from target_selection.calculations.distance_calc import get_distance_changes
+from target_selection.calculations.distance_calc import get_distance_changesv2
 from target_selection.calculations.theta_calc import get_theta
 import json
 import numpy as np
@@ -26,7 +26,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
     )
 
     # Get the distance changes from the gesture start to the gesture end
-    distance_changes = get_distance_changes(gesture_start, gesture_end)
+    distance_changes = get_distance_changesv2(gesture_start, gesture_end)
 
     print("Bearings: {}".format(bearings))
     print("Distance changes: {}".format(distance_changes))
