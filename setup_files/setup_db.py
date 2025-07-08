@@ -1,5 +1,6 @@
 import sqlite3
 
+
 def setup_db():
     conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
     cur = conn.cursor()

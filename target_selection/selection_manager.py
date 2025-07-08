@@ -11,7 +11,7 @@ THETA = 0  # globally set by another thread (Initial Richtung + Theta) ~= Headin
 
 def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
     print("Selecting Target")
-    print(f"Duration of gesture: {(gesture_end - gesture_start)*1.0e-6}")
+    print(f"Duration of gesture: {(gesture_end - gesture_start) * 1.0e-6}")
 
     theta = get_theta()
     print(f"Theta: {theta}")
@@ -36,12 +36,13 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
     # Get anchor with minimum distance change (works because decrease is negative)
     anchor_min_distance_change = min(distance_changes, key=distance_changes.get)
 
-
     if anchor_min_bearing == anchor_min_distance_change:
         print("SUCCESS. CONCURRING OPINIONS.")
         print(f"Selected Target: {anchor_min_bearing}")
     else:
-        print("FAILURE. DIFFERING OPINIONS.") # Do more complex score calculation based on relative changes
+        print(
+            "FAILURE. DIFFERING OPINIONS."
+        )  # Do more complex score calculation based on relative changes
 
 
 def read_anchor_config():
@@ -52,6 +53,7 @@ def read_anchor_config():
         anchors[anchor["id"]] = np.array([anchor["x"], anchor["y"]])
     return anchors
 
+
 # First ever position of the tag, this is where we calibrated the tag to
 def get_initial_position():
     conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
@@ -60,6 +62,7 @@ def get_initial_position():
     ).fetchone()
     conn.close()
     return np.array(initial_position)
+
 
 # Get last known position of the tag before the gesture started
 def get_current_position(gesture_start):
