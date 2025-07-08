@@ -1,10 +1,10 @@
-from selection_manager import select_target
+from target_selection.selection_manager import select_target
 import time
 import sqlite3
 
 
 def connect():
-    conn = sqlite3.connect("test_data.db")
+    conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
     return conn
 
 
@@ -38,16 +38,23 @@ def monitor_arm_down():
 
 def check_last_axis_acceleration(conn, axis):
     cur = conn.cursor()
-    last_axis_accelerations = cur.execute("""SELECT abs(?)
-                                          FROM accel_data
-                                          ORDER BY timestamp DESC
-                                          LIMIT 10""", (axis,),).fetchall()
+    if axis == "x":
+        last_axis_accelerations = cur.execute("""SELECT abs(x)
+                                              FROM accel_data
+                                              ORDER BY timestamp DESC
+                                              LIMIT 10""").fetchall()
+    else:
+        last_axis_accelerations = cur.execute("""SELECT abs(z)
+                                                 FROM accel_data
+                                                 ORDER BY timestamp DESC
+                                                 LIMIT 10""").fetchall()
     if len(last_axis_accelerations) > 0:
         for a in last_axis_accelerations:
-            print(a[0])
-            if a[0] > 1.05 or a[0] < 0.9:
+            if a[0] > 1.1 or a[0] < 0.9:
                 return False
         return True
     else:
         return False
-    
+
+if __name__ == "__main__":
+    monitor_gesture()

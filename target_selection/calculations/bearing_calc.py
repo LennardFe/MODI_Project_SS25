@@ -37,9 +37,9 @@ def calc_bearing(current_heading_v, a, t):
 def play_sounds(bearings):
     min_bearing = round(min(bearings.values()))
     min_bearing_string = f"{min_bearing:03}"
-    playsound("sound_files/ESMContactBearing.wav")
+    playsound("assets/sound_files/ESMContactBearing.wav")
     for char in min_bearing_string:
-        playsound(f"sound_files/numbers/{char}.wav")
+        playsound(f"assets/sound_files/numbers/{char}.wav")
 
 
 def get_bearings(anchors, calibration_anchor, initial_position, theta, t):

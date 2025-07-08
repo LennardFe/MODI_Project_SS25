@@ -1,7 +1,7 @@
 import sqlite3
 
 def setup_db():
-    conn = sqlite3.connect("assets/MODI.db")
+    conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
     cur = conn.cursor()
     cur.execute("""DROP TABLE IF EXISTS gyro_data""")
     cur.execute("""DROP TABLE IF EXISTS accel_data""")

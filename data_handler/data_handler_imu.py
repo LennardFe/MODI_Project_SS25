@@ -14,7 +14,7 @@ db_queue = Queue()
 
 
 def db_worker():
-    conn = sqlite3.connect("assets/MODI.db")
+    conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
     cur = conn.cursor()
     while True:
         item = db_queue.get()
@@ -46,7 +46,7 @@ def make_accel_handler():
 
 
 async def read_data():
-    device = await BleakScanner.find_device_by_address("B0:6D:06:5A:59:D1")
+    device = await BleakScanner.find_device_by_address("B0:6D:06:5A:59:D1", timeout=20)
     if not device:
         print("Device not found")
         return

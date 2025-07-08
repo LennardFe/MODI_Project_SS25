@@ -3,7 +3,7 @@ import time
 
 
 def connect():
-    conn = sqlite3.connect("test_data.db")
+    conn = sqlite3.connect("assets/MODI.db")
     return conn
 
 

@@ -1,5 +1,5 @@
-from calculations.bearing_calc import get_bearings
-from calculations.distance_calc import get_distance_changes
+from target_selection.calculations.bearing_calc import get_bearings
+from target_selection.calculations.distance_calc import get_distance_changes
 import json
 import numpy as np
 import math
@@ -43,12 +43,12 @@ def read_anchor_config():
         config = json.load(f)
     anchors = {}
     for anchor in config:
-        anchors[anchor["id"]] = np.array([anchor["x"], anchor["y"], anchor["z"]])
+        anchors[anchor["id"]] = np.array([anchor["x"], anchor["y"]])
     return anchors
 
 # First ever position of the tag, this is where we calibrated the tag to
 def get_initial_position():
-    conn = sqlite3.connect("assets/MODI.db")
+    conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
     initial_position = conn.execute(
         """SELECT est_position_x, est_position_y FROM location_data WHERE est_position_x IS NOT NULL AND est_position_y IS NOT NULL ORDER BY timestamp ASC LIMIT 1"""
     ).fetchone()
@@ -57,7 +57,7 @@ def get_initial_position():
 
 # Get last known position of the tag before the gesture started
 def get_current_position(gesture_start):
-    conn = sqlite3.connect("assets/MODI.db")
+    conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
     current_position = conn.execute(
         """SELECT est_position_x, est_position_y FROM location_data WHERE timestamp < ? AND est_position_x IS NOT NULL AND est_position_y IS NOT NULL ORDER BY timestamp DESC LIMIT 1""",
         (gesture_start,),

@@ -17,7 +17,7 @@ db_queue = Queue()
 
 # Read newest data from the queue and write into the database
 def db_worker():
-    conn = sqlite3.connect("assets/MODI.db")
+    conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
     cur = conn.cursor()
 
     while True:
@@ -114,7 +114,7 @@ def make_location_handler():
 
 # Read data from the DWM Tag and handle notifications
 async def read_data():
-    async with BleakClient(ADDRESS) as client:
+    async with BleakClient(ADDRESS, timeout=20) as client:
         print("Connected to DWM Tag")
         await client.start_notify(LOCATION_UUID, make_location_handler())
         print("Notifications started. Listening for data...")
