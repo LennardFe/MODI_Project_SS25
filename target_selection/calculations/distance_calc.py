@@ -62,6 +62,7 @@ def get_distance_changesv2(start, end=0):
                                         LIMIT 1""",
         (start,),
     ).fetchone()
+    start_position = np.array([start_position[0], start_position[1]])
     end_position = cur.execute(
         """SELECT est_position_x, est_position_y
                                         FROM location_data
@@ -70,7 +71,7 @@ def get_distance_changesv2(start, end=0):
                                         LIMIT 1""",
         (end,),
     ).fetchone()
-    start_position = np.array([start_position[0], start_position[1]])
+    end_position = np.array([end_position[0], end_position[1]])
     with open("assets/anchor_config.json", "r") as f:
         anchors = json.load(f)
     distance_changes = {}
