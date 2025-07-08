@@ -5,6 +5,7 @@ import json
 import numpy as np
 import math
 import sqlite3
+import matplotlib.pyplot as plt
 
 THETA = 0  # globally set by another thread (Initial Richtung + Theta) ~= Heading
 
@@ -35,6 +36,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
 
     # Get anchor with minimum distance change (works because decrease is negative)
     anchor_min_distance_change = min(distance_changes, key=distance_changes.get)
+    plot_distance_change(gesture_start, gesture_end)
 
 
     if anchor_min_bearing == anchor_min_distance_change:
@@ -43,6 +45,49 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
     else:
         print("FAILURE. DIFFERING OPINIONS.") # Do more complex score calculation based on relative changes
 
+
+def plot_distance_change(gesture_start, gesture_end):
+    conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
+    cur = conn.cursor()
+    plot_start = gesture_start - 2e+9
+    plot_end = gesture_end + 2e+9
+    cur.execute("""SELECT timestamp, abs(z) FROM accel_data WHERE timestamp > ? AND timestamp < ? ORDER BY timestamp ASC""", (plot_start, plot_end))
+    data = cur.fetchall()
+    conn.close()
+    
+    if not data:
+        print("No data found for plotting")
+        return
+    
+    # Extract timestamps and distances
+    timestamps = [row[0] for row in data]
+    distances = [row[1] for row in data]
+    
+    # Convert timestamps to relative time (in seconds) for better readability
+    timestamps_relative = [(ts - timestamps[0]) / 1e9 for ts in timestamps]
+    gesture_start_relative = (gesture_start - timestamps[0]) / 1e9
+    gesture_end_relative = (gesture_end - timestamps[0]) / 1e9
+    
+    # Create the plot
+    plt.figure(figsize=(12, 6))
+    plt.plot(timestamps_relative, distances, 'b-', linewidth=1, label='Distance (abs(z))')
+    
+    # Add vertical lines for gesture start and end
+    plt.axvline(x=gesture_start_relative, color='green', linestyle='--', linewidth=2, label='Gesture Start')
+    plt.axvline(x=gesture_end_relative, color='red', linestyle='--', linewidth=2, label='Gesture End')
+    
+    # Customize the plot
+    plt.xlabel('Time (seconds)')
+    plt.ylabel('Distance (abs(z))')
+    plt.title('Distance Change Over Time')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    plt.tight_layout()
+    
+    # Show the plot
+    plt.show()
+    
+    return data
 
 def read_anchor_config():
     with open("assets/anchor_config.json", "r") as f:

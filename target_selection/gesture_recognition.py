@@ -18,10 +18,10 @@ def monitor_gesture(CALIBRATION_ANCHOR):
                 """SELECT timestamp FROM accel_data WHERE abs(z) < 0.2 AND abs(x) > 0.9 ORDER BY timestamp DESC LIMIT 1"""
             ).fetchone()[0]
 
-            diff_in_milliseconds = gesture_end - gesture_start
-            diff_in_seconds = diff_in_milliseconds / 1000
-            print(f"Gesture recognized. Difference between start and end in seconds: {diff_in_seconds} s.")
+
+            print(f"Gesture recognized.")
             conn.close()
+
 
             select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR)
             break

@@ -44,7 +44,6 @@ pytz==2025.2
 pyzmq==27.0.0
 referencing==0.36.2
 rpds-py==0.25.1
-scipy==1.14.1
 six==1.17.0
 stack-data==0.6.3
 tornado==6.5.1
