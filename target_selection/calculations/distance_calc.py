@@ -53,24 +53,28 @@ def get_distance_changesv2(start, end=0):
         end = time.time_ns()
     conn = connect()
     cur = conn.cursor()
-    distance_changes = {}
     start_position = cur.execute(
         """SELECT est_position_x, est_position_y
-                                        FROM location_data
-                                        WHERE timestamp > ?
-                                        ORDER BY timestamp
-                                        LIMIT 1""",
+               FROM location_data
+               WHERE timestamp > ?
+               AND est_position_x IS NOT NULL
+               AND est_position_y IS NOT NULL
+               ORDER BY timestamp
+               LIMIT 1""",
         (start,),
     ).fetchone()
     start_position = np.array([start_position[0], start_position[1]])
     end_position = cur.execute(
         """SELECT est_position_x, est_position_y
-                                        FROM location_data
-                                        WHERE timestamp < ?
-                                        ORDER BY timestamp DESC
-                                        LIMIT 1""",
+               FROM location_data
+               WHERE timestamp < ?
+               AND est_position_x IS NOT NULL
+               AND est_position_y IS NOT NULL
+               ORDER BY timestamp DESC
+               LIMIT 1""",
         (end,),
     ).fetchone()
+    conn.close()
     end_position = np.array([end_position[0], end_position[1]])
     with open("assets/anchor_config.json", "r") as f:
         anchors = json.load(f)
