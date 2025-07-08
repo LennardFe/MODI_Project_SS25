@@ -44,17 +44,11 @@ def play_sounds(bearings):
 
 def get_bearings(anchors, calibration_anchor, initial_position, theta, t):
     ini_vec = anchors[calibration_anchor] - initial_position
-    initial_heading = -calc_angle(np.array([0, 1]), ini_vec)
-    print("Initial heading: {}".format(math.degrees(initial_heading)))
-
     rotation_matrix = get_rotation_matrix(theta)
     current_heading_v = np.dot(rotation_matrix, ini_vec)
-    print("Current heading v: {}".format(current_heading_v))
     bearings = {}
     for anchor_name, anchor in anchors.items():
         bearings[anchor_name] = calc_bearing(current_heading_v, anchor, t)
-    print("Bearings: {}".format(bearings))
-    play_sounds(bearings)
     return bearings
 
 
