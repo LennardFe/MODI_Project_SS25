@@ -2,20 +2,6 @@ import math
 import numpy as np
 from playsound3 import playsound
 
-A1 = (0, 2)
-A2 = (1, 0)
-A3 = (2, 1)
-
-theta = math.radians(30)
-anchors = {
-    "A1": np.array(A1),
-    "A2": np.array(A2),
-    "A3": np.array(A3),
-}
-
-T = np.array((1, 1))
-
-
 def get_rotation_matrix(alpha):
     alpha = -alpha
     cos_alpha = math.cos(alpha)

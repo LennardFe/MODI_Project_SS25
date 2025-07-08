@@ -1,6 +1,7 @@
 from target_selection.calculations.bearing_calc import get_bearings
 from target_selection.calculations.distance_calc import get_distance_changesv2
 from target_selection.calculations.theta_calc import get_theta
+from target_selection.calculations.score_calc import get_best_scoring_anchor
 import json
 import numpy as np
 import math
@@ -42,9 +43,9 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
         print("SUCCESS. CONCURRING OPINIONS.")
         print(f"Selected Target: {anchor_min_bearing}")
     else:
-        print(
-            "FAILURE. DIFFERING OPINIONS."
-        )  # Do more complex score calculation based on relative changes
+        print("DISAGREEMENT. SELECTING BEST SCORING ANCHOR.")
+        anchor = get_best_scoring_anchor(distance_changes, bearings, method="Ole")
+        print(f"Selected Target: {anchor}")
 
 
 def plot_distance_change(gesture_start, gesture_end, anchor_id):
