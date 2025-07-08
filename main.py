@@ -6,6 +6,8 @@ from setup_files.setup_db import setup_db
 from threading import Thread
 from time import sleep
 
+CALIBRATION_ANCHOR = "5C19"
+
 # Drop and recreate the SQLite tables
 setup_db()
 sleep(2)
@@ -15,4 +17,4 @@ sleep(2)
 
 Thread(target=handle_imu_data).start()
 Thread(target=handle_uwb_data).start()
-Thread(target=monitor_gesture()).start()
+Thread(target=monitor_gesture(CALIBRATION_ANCHOR)).start()

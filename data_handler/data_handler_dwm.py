@@ -115,9 +115,8 @@ def make_location_handler():
 # Read data from the DWM Tag and handle notifications
 async def read_data():
     async with BleakClient(ADDRESS, timeout=20) as client:
-        print("Connected to DWM Tag")
+        print("Tag found. Listening...")
         await client.start_notify(LOCATION_UUID, make_location_handler())
-        print("Notifications started. Listening for data...")
 
         await asyncio.Event().wait()  # block forever until the program is terminated
 

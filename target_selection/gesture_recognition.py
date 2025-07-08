@@ -8,7 +8,7 @@ def connect():
     return conn
 
 
-def monitor_gesture():
+def monitor_gesture(CALIBRATION_ANCHOR):
     conn = connect()
     while True:
         if check_last_axis_acceleration(conn, "z"):
@@ -19,13 +19,13 @@ def monitor_gesture():
             ).fetchone()[0]
             print("Gesture recognized.")
             conn.close()
-            select_target(gesture_start, gesture_end)
+            select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR)
             break
 
-    monitor_arm_down()
+    monitor_arm_down(CALIBRATION_ANCHOR)
             
 
-def monitor_arm_down():
+def monitor_arm_down(CALIBRATION_ANCHOR):
     conn = connect()
     while True:
         if check_last_axis_acceleration(conn, "x"):
@@ -33,7 +33,7 @@ def monitor_arm_down():
             conn.close()
             break
 
-    monitor_gesture()
+    monitor_gesture(CALIBRATION_ANCHOR)
 
 
 def check_last_axis_acceleration(conn, axis):

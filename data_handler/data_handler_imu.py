@@ -48,13 +48,13 @@ def make_accel_handler():
 async def read_data():
     device = await BleakScanner.find_device_by_address("B0:6D:06:5A:59:D1", timeout=20)
     if not device:
-        print("Device not found")
+        print("IMU not found")
         return
 
     async with BleakClient(device) as client:
         await client.start_notify(GYRO_SERVICE_UUID, make_gyro_handler())
         await client.start_notify(ACCEL_SERVICE_UUID, make_accel_handler())
-        print("Notifications started. Listening...")
+        print("IMU found. Listening...")
 
         await asyncio.Event().wait()  # block forever
 

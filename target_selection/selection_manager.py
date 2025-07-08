@@ -5,11 +5,10 @@ import numpy as np
 import math
 import sqlite3
 
-CALIBRATION_ANCHOR = "DC0F"  # globally set at beginning
-THETA = 121  # globally set by another thread (Initial Richtung + Theta) ~= Heading
+THETA = 0  # globally set by another thread (Initial Richtung + Theta) ~= Heading
 
 
-def select_target(gesture_start, gesture_end):
+def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
     print("Selecting Target")
 
     # Return python dictionary with ids and angle (bearing) of anchors
