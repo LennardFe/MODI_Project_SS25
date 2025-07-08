@@ -54,7 +54,6 @@ def parse_location_data(data: bytearray):
 
     # First byte indicates the data type
     data_type = data[0]
-    print(f"Datatype: {data_type}")
 
     # Position only
     if data_type == 0:  

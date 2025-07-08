@@ -1,5 +1,6 @@
 from target_selection.calculations.bearing_calc import get_bearings
 from target_selection.calculations.distance_calc import get_distance_changes
+from target_selection.calculations.theta_calc import get_theta
 import json
 import numpy as np
 import math
@@ -10,31 +11,37 @@ THETA = 0  # globally set by another thread (Initial Richtung + Theta) ~= Headin
 
 def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
     print("Selecting Target")
+    print(f"Duration of gesture: {(gesture_end - gesture_start)*1.0e-6}")
+
+    theta = get_theta()
+    print(f"Theta: {theta}")
 
     # Return python dictionary with ids and angle (bearing) of anchors
     bearings = get_bearings(
         read_anchor_config(),
         CALIBRATION_ANCHOR,
         get_initial_position(),
-        math.radians(THETA),
+        math.radians(theta),
         get_current_position(gesture_start),
     )
 
     # Get the distance changes from the gesture start to the gesture end
     distance_changes = get_distance_changes(gesture_start, gesture_end)
 
+    print("Bearings: {}".format(bearings))
+    print("Distance changes: {}".format(distance_changes))
     # Get anchor with minimum bearing
-    anchor_min_bearing = min(bearings)
+    anchor_min_bearing = min(bearings, key=bearings.get)
 
     # Get anchor with minimum distance change (works because decrease is negative)
-    anchor_min_distance_change = min(distance_changes)
+    anchor_min_distance_change = min(distance_changes, key=distance_changes.get)
 
 
     if anchor_min_bearing == anchor_min_distance_change:
         print("SUCCESS. CONCURRING OPINIONS.")
         print(f"Selected Target: {anchor_min_bearing}")
     else:
-        pass # Do more complex score calculation based on relative changes
+        print("FAILURE. DIFFERING OPINIONS.") # Do more complex score calculation based on relative changes
 
 
 def read_anchor_config():
