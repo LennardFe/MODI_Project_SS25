@@ -54,22 +54,36 @@ def plot_distance_change(gesture_start, gesture_end, anchor_id):
     plot_start = gesture_start - 2e+9
     plot_end = gesture_end + 2e+9
     
-    # Query distance data for the specific anchor
-    cur.execute("""SELECT timestamp, distance FROM location_data 
+    # Query position data for the tag
+    cur.execute("""SELECT timestamp, est_position_x, est_position_y FROM location_data 
                    WHERE timestamp > ? AND timestamp < ? 
-                   AND anchor_id = ? 
-                   AND distance IS NOT NULL 
-                   ORDER BY timestamp ASC""", (plot_start, plot_end, anchor_id))
+                   AND est_position_x IS NOT NULL 
+                   AND est_position_y IS NOT NULL 
+                   ORDER BY timestamp ASC""", (plot_start, plot_end))
     data = cur.fetchall()
     conn.close()
     
-    if not data:
-        print(f"No distance data found for anchor {anchor_id}")
-        return
     
-    # Extract timestamps and distances
+    # Load anchor configuration to get anchor position
+    with open("assets/anchor_config.json", "r") as f:
+        anchor_config = json.load(f)
+    
+    # Find the specific anchor position
+    anchor_position = None
+    for anchor in anchor_config:
+        if anchor["id"] == anchor_id:
+            anchor_position = np.array([anchor["x"], anchor["y"]])
+            break
+
+    
+    # Extract timestamps and calculate distances
     timestamps = [row[0] for row in data]
-    distances = [row[1] for row in data]
+    distances = []
+    
+    for row in data:
+        tag_position = np.array([row[1], row[2]])  # est_position_x, est_position_y
+        distance = np.linalg.norm(anchor_position - tag_position)
+        distances.append(distance)
     
     # Convert timestamps to relative time (in seconds) for better readability
     timestamps_relative = [(ts - timestamps[0]) / 1e9 for ts in timestamps]
@@ -94,7 +108,7 @@ def plot_distance_change(gesture_start, gesture_end, anchor_id):
     # Customize the plot
     plt.xlabel('Time (seconds)')
     plt.ylabel('Distance Change (meters)')
-    plt.title(f'Distance Change Over Time - Anchor {anchor_id}')
+    plt.title(f'Distance Change Over Time - Anchor {anchor_id} (Calculated from X,Y)')
     plt.legend()
     plt.grid(True, alpha=0.3)
     plt.tight_layout()
