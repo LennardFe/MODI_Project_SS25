@@ -2,6 +2,7 @@ import math
 import numpy as np
 from playsound3 import playsound
 
+
 def get_rotation_matrix(alpha):
     alpha = -alpha
     cos_alpha = math.cos(alpha)

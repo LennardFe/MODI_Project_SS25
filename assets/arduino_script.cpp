@@ -27,46 +27,56 @@ LSM6DS3 myIMU(I2C_MODE, 0x6A);
 
 
 void setup() {
-   Serial.begin(9600);
-  while (!Serial);
-   if (myIMU.begin() != 0) {
-        Serial.println("Device error");
-    } else {
-        Serial.println("Device OK!");
-    }
-  // begin initialization
-  if (!BLE.begin()) {
-    Serial.println("starting Bluetooth® Low Energy module failed!");
+  // Optional: Nur aktivieren, wenn du Debugging über Serial brauchst
+  // Serial.begin(9600);
+  // delay(2000); // Warten, bis USB bereit ist (wenn nötig)
+  // while (!Serial); // Nur verwenden, wenn du wirklich auf Serial wartest
 
-    while (1);
+  // --------------------
+  // Initialisiere IMU
+  // --------------------
+  bool imuReady = false;
+  for (int attempts = 0; attempts < 50; attempts++) {
+    if (myIMU.begin() == 0) {
+      imuReady = true;
+      break;
+    }
+    delay(500); // Warte und versuche es erneut
   }
 
-  // set advertised local name and services UUID:
+  if (!imuReady) {
+    // Wenn IMU nach mehreren Versuchen nicht startet, stoppen wir alles
+    // Optional: LED blinken lassen oder anderen Hinweis geben
+    while (1); // Dauerhaft anhalten
+  }
+
+  // --------------------
+  // Starte BLE
+  // --------------------
+  if (!BLE.begin()) {
+    // Optional: Debug-Meldung
+    // Serial.println("BLE Start fehlgeschlagen");
+    while (1); // BLE konnte nicht gestartet werden
+  }
+
+  // BLE-Konfiguration
   BLE.setLocalName("MODI_SW_IMU");
+
   imuService.addCharacteristic(gyroCharacteristic);
   imuService.addCharacteristic(accelCharacteristic);
   BLE.setAdvertisedService(imuService);
-
-  // add service
   BLE.addService(imuService);
-
-  // start advertising
   BLE.advertise();
 
-  Serial.println("BLE MODI SW IMU");
-
+  // Optional: Debug-Meldung
+  // Serial.println("BLE gestartet, wartet auf Verbindung...");
 }
+
 
 void loop() {
    // listen for Bluetooth® Low Energy peripherals to connect:
   BLEDevice central = BLE.central();
 
-  // if a central is connected to peripheral:
-  if (central) {
-    Serial.print("Connected to central: ");
-    // print the central's MAC address:
-    Serial.println(central.address());
-  }
 
   while (central.connected()) {
     readGyroSensors();
