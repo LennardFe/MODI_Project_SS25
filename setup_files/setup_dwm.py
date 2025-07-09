@@ -1,6 +1,5 @@
 from bleak import BleakClient
 import json, struct, asyncio
-import time
 
 # UUID of where we write the anchor position
 ANCHOR_POSITION_CHARACTERISTIC_UUID = "f0f26c9b-2c8c-49ac-ab60-fe03def1b40c"
