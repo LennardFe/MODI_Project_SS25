@@ -1,4 +1,6 @@
 import asyncio
+import sys
+
 from bleak import BleakClient
 import struct
 from queue import Queue
@@ -36,24 +38,30 @@ def db_worker():
             est_position_z,
             est_position_qf,
         ) = item
+        try:
+            cur.execute(
+                """INSERT INTO location_data (timestamp, anchor_id, 
+                                            distance, distance_qf, est_position_x, 
+                                            est_position_y, est_position_z, est_position_qf) 
+                   VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
+                (
+                    timestamp,
+                    anchor_id,
+                    distance,
+                    distance_qf,
+                    est_position_x,
+                    est_position_y,
+                    est_position_z,
+                    est_position_qf,
+                ),
+            )
+            conn.commit()
+        except sqlite3.Error as se:
+            print("Sqlite error in DWM data handler.")
+            print(se)
+        except Exception as e:
+            print(e)
 
-        cur.execute(
-            """INSERT INTO location_data (timestamp, anchor_id, 
-                                        distance, distance_qf, est_position_x, 
-                                        est_position_y, est_position_z, est_position_qf) 
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?)""",
-            (
-                timestamp,
-                anchor_id,
-                distance,
-                distance_qf,
-                est_position_x,
-                est_position_y,
-                est_position_z,
-                est_position_qf,
-            ),
-        )
-        conn.commit()
 
     conn.close()
 

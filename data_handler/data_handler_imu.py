@@ -22,11 +22,18 @@ def db_worker():
         if item is None:
             break
         table, timestamp, x, y, z = item
-        cur.execute(
-            f"INSERT INTO {table} (timestamp, x, y, z) VALUES (?, ?, ?, ?)",
-            (timestamp, x, y, z),
-        )
-        conn.commit()
+        try:
+            cur.execute(
+                f"INSERT INTO {table} (timestamp, x, y, z) VALUES (?, ?, ?, ?)",
+                (timestamp, x, y, z),
+            )
+            conn.commit()
+        except sqlite3.Error as se:
+            print(f"Sqlite error in IMU data handler for table '{table}'.")
+            print(se)
+        except Exception as e:
+            print(e)
+
     conn.close()
 
 
