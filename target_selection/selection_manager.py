@@ -15,7 +15,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
     print("Selecting Target")
     print(f"Duration of gesture: {(gesture_end - gesture_start) * 1.0e-6}")
 
-    theta = -get_theta()
+    theta = get_theta()
     print(f"Theta: {theta}")
 
     # Return python dictionary with ids and angle (bearing) of anchors

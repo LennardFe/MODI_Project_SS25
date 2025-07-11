@@ -3,11 +3,10 @@ import numpy as np
 from playsound3 import playsound
 
 
-def get_rotation_matrix(alpha):
-    alpha = -alpha
-    cos_alpha = math.cos(alpha)
-    sin_alpha = math.sin(alpha)
-    return np.array([[cos_alpha, -sin_alpha], [sin_alpha, cos_alpha]])
+def get_rotation_matrix(theta):
+    cos_theta = math.cos(theta)
+    sin_theta = math.sin(theta)
+    return np.array([[cos_theta, -sin_theta], [sin_theta, cos_theta]])
 
 
 def calc_angle(x, y):
@@ -37,8 +36,3 @@ def get_bearings(anchors, calibration_anchor, initial_position, theta, t):
     for anchor_name, anchor in anchors.items():
         bearings[anchor_name] = calc_bearing(current_heading_v, anchor, t)
     return bearings
-
-
-if __name__ == "__main__":
-    INITIAL_POSITION = np.array([1, 1])
-    bearings = get_bearings(anchors, "A1", INITIAL_POSITION, theta, T)
