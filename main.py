@@ -16,4 +16,4 @@ setup_db()
 
 Thread(target=handle_imu_data).start()
 Thread(target=handle_uwb_data).start()
-Thread(target=monitor_gesture(CALIBRATION_ANCHOR)).start()
+Thread(target=monitor_gesture, args=(CALIBRATION_ANCHOR,)).start()

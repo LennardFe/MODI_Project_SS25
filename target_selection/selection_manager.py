@@ -11,24 +11,24 @@ import matplotlib.pyplot as plt
 THETA = 0  # globally set by another thread (Initial Richtung + Theta) ~= Heading
 
 
-def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
+def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name="MODI"):
     print("Selecting Target")
     print(f"Duration of gesture: {(gesture_end - gesture_start) * 1.0e-6}")
 
-    theta = -get_theta()
+    theta = -get_theta(database_name)
     print(f"Theta: {theta}")
 
     # Return python dictionary with ids and angle (bearing) of anchors
     bearings = get_bearings(
         read_anchor_config(),
         CALIBRATION_ANCHOR,
-        get_initial_position(),
+        get_initial_position(database_name),
         math.radians(theta),
-        get_current_position(gesture_end),
+        get_current_position(gesture_end, database_name),
     )
 
     # Get the distance changes from the gesture start to the gesture end
-    distance_changes = get_distance_changesv2(gesture_start, gesture_end)
+    distance_changes = get_distance_changesv2(gesture_start, gesture_end, database_name)
 
     print("Bearings: {}".format(bearings))
     print("Distance changes: {}".format(distance_changes))
@@ -37,7 +37,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
 
     # Get anchor with minimum distance change (works because decrease is negative)
     anchor_min_distance_change = min(distance_changes, key=distance_changes.get)
-    plot_distance_change(gesture_start, gesture_end, anchor_min_distance_change)
+    plot_distance_change(gesture_start, gesture_end, anchor_min_distance_change, database_name)
 
     if anchor_min_bearing == anchor_min_distance_change:
         print("SUCCESS. CONCURRING OPINIONS.")
@@ -48,8 +48,8 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR):
         print(f"Selected Target: {anchor}")
 
 
-def plot_distance_change(gesture_start, gesture_end, anchor_id):
-    conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
+def plot_distance_change(gesture_start, gesture_end, anchor_id, database_name="MODI"):
+    conn = sqlite3.connect(f'assets/{database_name}.db', check_same_thread=False)
     cur = conn.cursor()
     plot_start = gesture_start - 2e9
     plot_end = gesture_end + 2e9
@@ -148,8 +148,8 @@ def read_anchor_config():
 
 
 # First ever position of the tag, this is where we calibrated the tag to
-def get_initial_position():
-    conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
+def get_initial_position(database_name="MODI"):
+    conn = sqlite3.connect(f'assets/{database_name}.db', check_same_thread=False)
     initial_position = conn.execute(
         """SELECT est_position_x, est_position_y FROM location_data WHERE est_position_x IS NOT NULL AND est_position_y IS NOT NULL ORDER BY timestamp ASC LIMIT 1"""
     ).fetchone()
@@ -158,8 +158,8 @@ def get_initial_position():
 
 
 # Get last known position of the tag before the gesture started
-def get_current_position(gesture_start):
-    conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
+def get_current_position(gesture_start, database_name="MODI"):
+    conn = sqlite3.connect(f'assets/{database_name}.db', check_same_thread=False)
     current_position = conn.execute(
         """SELECT est_position_x, est_position_y FROM location_data WHERE timestamp < ? AND est_position_x IS NOT NULL AND est_position_y IS NOT NULL ORDER BY timestamp DESC LIMIT 1""",
         (gesture_start,),

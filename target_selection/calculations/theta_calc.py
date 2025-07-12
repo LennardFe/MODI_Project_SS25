@@ -2,8 +2,8 @@ import sqlite3
 from scipy.integrate import trapezoid
 
 
-def get_theta():
-    conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
+def get_theta(database_name="MODI"):
+    conn = sqlite3.connect(f'assets/{database_name}.db', check_same_thread=False)
     cur = conn.cursor()
     data = cur.execute("""SELECT timestamp, x from gyro_data""").fetchall()
     conn.close()

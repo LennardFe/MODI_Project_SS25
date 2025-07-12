@@ -3,43 +3,41 @@ import time
 import sqlite3
 
 
-def connect():
-    conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
+def connect(database_name="MODI"):
+    conn = sqlite3.connect(f'assets/{database_name}.db', check_same_thread=False)
     return conn
 
 
-def monitor_gesture(CALIBRATION_ANCHOR):
-    conn = connect()
+def monitor_gesture(CALIBRATION_ANCHOR, database_name="MODI"):
     while True:
-        if check_last_axis_acceleration(conn, "z"):
+        if check_last_axis_acceleration("z", database_name):
             gesture_end = time.time_ns()
+            conn = connect(database_name)
             cur = conn.cursor()
             gesture_start = cur.execute(
                 """SELECT timestamp FROM accel_data WHERE abs(z) < 0.2 AND abs(x) > 0.9 ORDER BY timestamp DESC LIMIT 1"""
             ).fetchone()[0]
-
-            print(f"Gesture recognized.")
             conn.close()
 
-            select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR)
+            select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name)
             break
 
-    monitor_arm_down(CALIBRATION_ANCHOR)
+    monitor_arm_down(CALIBRATION_ANCHOR, database_name)
 
 
-def monitor_arm_down(CALIBRATION_ANCHOR):
-    conn = connect()
+def monitor_arm_down(CALIBRATION_ANCHOR, database_name="MODI"):
     while True:
-        if check_last_axis_acceleration(conn, "x"):
+        if check_last_axis_acceleration("x", database_name):
             print("Arm down gesture recognized.")
-            conn.close()
             break
 
-    monitor_gesture(CALIBRATION_ANCHOR)
+    monitor_gesture(CALIBRATION_ANCHOR, database_name)
 
 
-def check_last_axis_acceleration(conn, axis):
+def check_last_axis_acceleration(axis, database_name="MODI"):
+    conn = connect(database_name)
     cur = conn.cursor()
+    
     if axis == "x":
         last_axis_accelerations = cur.execute("""SELECT abs(x)
                                               FROM accel_data
@@ -50,6 +48,9 @@ def check_last_axis_acceleration(conn, axis):
                                                  FROM accel_data
                                                  ORDER BY timestamp DESC
                                                  LIMIT 10""").fetchall()
+    
+    conn.close()
+    
     if len(last_axis_accelerations) > 0:
         for a in last_axis_accelerations:
             if a[0] > 1.1 or a[0] < 0.9:
@@ -60,4 +61,4 @@ def check_last_axis_acceleration(conn, axis):
 
 
 if __name__ == "__main__":
-    monitor_gesture()
+    monitor_gesture("5C19")

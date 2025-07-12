@@ -4,15 +4,15 @@ import json
 import numpy as np
 
 
-def connect():
-    conn = sqlite3.connect("assets/MODI.db")
+def connect(database_name="MODI"):
+    conn = sqlite3.connect(f'assets/{database_name}.db')
     return conn
 
 
-def get_distance_changes(start, end=0):
+def get_distance_changes(start, end=0, database_name="MODI"):
     if end == 0:
         end = time.time_ns()
-    conn = connect()
+    conn = connect(database_name)
     cur = conn.cursor()
     anchor_ids = cur.execute("SELECT DISTINCT anchor_id FROM location_data").fetchall()
     anchor_ids = [id[0] for id in anchor_ids]
@@ -45,13 +45,15 @@ def get_distance_changes(start, end=0):
         delta_distance = end_distance[0] - start_distance[0]
         distance_change = delta_distance / start_distance[0]
         distance_changes[anchor_id] = distance_change
+    conn.close()
     return distance_changes
 
 
-def get_distance_changesv2(start, end=0):
+def get_distance_changesv2(start, end=0, database_name="MODI"):
     if end == 0:
         end = time.time_ns()
-    conn = connect()
+    
+    conn = connect(database_name)
     cur = conn.cursor()
     start_position = cur.execute(
         """SELECT est_position_x, est_position_y
@@ -75,6 +77,7 @@ def get_distance_changesv2(start, end=0):
         (end,),
     ).fetchone()
     conn.close()
+    
     end_position = np.array([end_position[0], end_position[1]])
     with open("assets/anchor_config.json", "r") as f:
         anchors = json.load(f)
