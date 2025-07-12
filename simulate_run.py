@@ -22,14 +22,12 @@ class RealTimeSimulator:
         if os.path.exists(self.simulation_db):
             try:
                 os.remove(self.simulation_db)
-                print(f"🗑️  Deleted existing simulation database: {self.simulation_db}")
             except Exception as e:
                 print(f"Warning: Could not delete simulation database: {e}")
         
     
     def setup_simulation_database(self):
         """Create a clean simulation database"""
-        print("Setting up simulation database...")
         
         # Delete existing simulation database
         self.delete_simulation_database()
@@ -75,11 +73,9 @@ class RealTimeSimulator:
         
         conn.commit()
         conn.close()
-        print("✅ Simulation database ready")
     
     def load_historical_data(self):
         """Load all historical data sorted by timestamp"""
-        print("Loading historical data...")
         conn = sqlite3.connect(self.source_db)
         cur = conn.cursor()
         
@@ -111,18 +107,11 @@ class RealTimeSimulator:
         if all_data:
             duration_ns = all_data[-1][0] - all_data[0][0]
             duration_seconds = duration_ns / 1e9
-            print(f"Loaded {len(all_data)} data points")
-            print(f"Original recording duration: {duration_seconds:.1f} seconds ({duration_seconds/60:.1f} minutes)")
-        
         return all_data
     
 
     
     def real_time_data_feed(self, all_data):
-        """Feed data into simulation database at real-time intervals"""
-        if not all_data:
-            print("No data to simulate")
-            return
         
         conn = sqlite3.connect(self.simulation_db, check_same_thread=False)
         cur = conn.cursor()
@@ -173,17 +162,12 @@ class RealTimeSimulator:
                 print(f"Database error: {e}")
         
         conn.close()
-        print(f"✅ Data feed completed at {time.strftime('%H:%M:%S')}")
 
     
     def run_simulation(self):
         """Run the real-time simulation"""
         all_data = self.load_historical_data()
-        
-        if not all_data:
-            print("No historical data found!")
-            return
-        
+    
         try:
             # Setup simulation environment
             self.setup_simulation_database()
@@ -206,40 +190,18 @@ class RealTimeSimulator:
             )
             data_feed_thread.start()
             
-            print("🚀 Simulation threads started - running concurrently like main.py")
-            print("   📊 Data feed thread: feeding sensor data in real-time")
-            print("   🎯 Gesture monitoring thread: watching for gestures")
-            print("   🖥️  Live animation will show theta direction and target selection")
-            print("⏰ This will take the same amount of time as the original recording")
-            
             # Give threads time to start
             time.sleep(2)
             
-            # Start live animation for simulation
             animation = LiveThetaAnimation(self.simulation_db)
-            
-            animation.start()  # This blocks until window closed
-            
-            
-        except KeyboardInterrupt:
-            print("\n⏹️  Simulation interrupted by user")
-            
-        except Exception as e:
-            print(f"❌ Simulation error: {e}")
+            animation.start() 
             
         finally:
             self.simulation_running = False
             animation.stop()
             self.simulation_running = False
-            print("🏁 Simulation finished!")
 
 def main():
-    """Main simulation function"""
-    print("=== MODI Project Real-Time Simulation ===")
-    print("🕐 Replaying recorded data at original timing intervals")
-    print(f"📂 Source database: {SOURCE_DB}")
-    print(f"🎯 Calibration anchor: {CALIBRATION_ANCHOR}")
-    print("-" * 50)
     
     # Check database
     try:
@@ -249,21 +211,14 @@ def main():
         tables = ['gyro_data', 'accel_data', 'location_data']
         total_records = 0
         for table in tables:
-            try:
-                count = cur.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
-                print(f"📋 {table}: {count} records")
-                total_records += count
-            except sqlite3.Error:
-                print(f"❌ {table}: table not found")
+            count = cur.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            total_records += count
                 
         conn.close()
         
-        if total_records == 0:
-            print("❌ No data found. Please record some data first.")
-            return
             
     except sqlite3.Error as e:
-        print(f"❌ Database error: {e}")
+        print(f"Database error: {e}")
         return
     
 

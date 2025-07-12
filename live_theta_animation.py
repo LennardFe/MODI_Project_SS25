@@ -55,9 +55,9 @@ class LiveThetaAnimation:
         self.last_selected_target = None
         self.last_selected_timestamp = 0  # When target was selected
         self.running = False
-        self.start_time = None  # Will be set when animation starts
-        self.gesture_active = False  # Whether gesture is currently being detected
-        self.arm_up_mode = False  # True if waiting for arm up, False if waiting for arm down
+        self.start_time = None
+        self.gesture_active = False
+        self.arm_up_mode = False
         
         # Initialize plot
         self.fig, self.ax = plt.subplots(figsize=(10, 8))
@@ -199,12 +199,7 @@ class LiveThetaAnimation:
             elapsed_str
         ]
         
-        
-        # Add gesture status
-        if self.gesture_active:
-            info_text.append("Status: GESTURE ACTIVE")
-        else:
-            info_text.append("Status: Monitoring...")
+
 
         info_str = "\n".join(info_text)
         self.ax.text(0.02, 0.98, info_str, transform=self.ax.transAxes,
