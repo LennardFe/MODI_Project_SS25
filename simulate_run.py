@@ -4,6 +4,7 @@ import threading
 import os
 from target_selection.gesture_recognition import  monitor_gesture
 from setup_files.setup_db import setup_db
+from live_visualization import LiveVisualizer
 from tqdm import tqdm
 # Configuration
 SOURCE_DB = "assets/MODI.db"  # Database with recorded data
@@ -197,6 +198,11 @@ class RealTimeSimulator:
             )
             gesture_thread.start()
             
+            # Start visualization
+            viz = LiveVisualizer(self.simulation_db)
+            viz_thread = threading.Thread(target=viz.start, daemon=True)
+            viz_thread.start()
+            
             # Start real-time data feed thread (like handle_imu_data and handle_uwb_data in main.py)
             data_feed_thread = threading.Thread(
                 target=self.real_time_data_feed,
@@ -225,6 +231,8 @@ class RealTimeSimulator:
             
         finally:
             self.simulation_running = False
+            if 'viz' in locals():
+                viz.stop()
             print("🏁 Simulation finished!")
 
 def main():

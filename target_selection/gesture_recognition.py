@@ -19,7 +19,7 @@ def monitor_gesture(CALIBRATION_ANCHOR, database_name="MODI"):
             ).fetchone()[0]
             conn.close()
 
-            select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name)
+            select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name, False)
             break
 
     monitor_arm_down(CALIBRATION_ANCHOR, database_name)

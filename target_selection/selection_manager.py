@@ -14,7 +14,7 @@ import time
 THETA = 0  # globally set by another thread (Initial Richtung + Theta) ~= Heading
 
 
-def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name="MODI"):
+def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name="MODI", plot_distance_change=False):
     print("Selecting Target")
     print(f"Duration of gesture: {(gesture_end - gesture_start) * 1.0e-6}")
 
@@ -40,7 +40,8 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name=
 
     # Get anchor with minimum distance change (works because decrease is negative)
     anchor_min_distance_change = min(distance_changes, key=distance_changes.get)
-    plot_distance_change(gesture_start, gesture_end, anchor_min_distance_change, database_name)
+    if plot_distance_change:
+        plot_distance_change(gesture_start, gesture_end, anchor_min_distance_change, database_name)
 
     if anchor_min_bearing == anchor_min_distance_change:
         print("SUCCESS. CONCURRING OPINIONS.")
