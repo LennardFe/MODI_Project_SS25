@@ -1,6 +1,7 @@
 from target_selection.selection_manager import select_target
 import time
 import sqlite3
+import os
 
 
 def connect(database_name="MODI"):
@@ -8,9 +9,22 @@ def connect(database_name="MODI"):
     return conn
 
 
+def save_gesture_state(state, database_name="MODI"):
+    """Save current gesture state for visualization"""
+    try:
+        os.makedirs("plots", exist_ok=True)
+        with open("plots/gesture_state.txt", "w") as f:
+            f.write(f"{time.time_ns()},{state}")
+    except Exception as e:
+        print(f"Error saving gesture state: {e}")
+
+
 def monitor_gesture(CALIBRATION_ANCHOR, database_name="MODI"):
+    # Save current state - waiting for arm up
+    
     while True:
         if check_last_axis_acceleration("z", database_name):
+            save_gesture_state("ARM_UP", database_name)
             gesture_end = time.time_ns()
             conn = connect(database_name)
             cur = conn.cursor()
@@ -26,9 +40,11 @@ def monitor_gesture(CALIBRATION_ANCHOR, database_name="MODI"):
 
 
 def monitor_arm_down(CALIBRATION_ANCHOR, database_name="MODI"):
+    # Save current state - waiting for arm down
+    
     while True:
         if check_last_axis_acceleration("x", database_name):
-            print("Arm down gesture recognized.")
+            save_gesture_state("ARM_DOWN", database_name)
             break
 
     monitor_gesture(CALIBRATION_ANCHOR, database_name)

@@ -53,8 +53,11 @@ class LiveThetaAnimation:
         self.current_position = None
         self.current_theta = 0.0
         self.last_selected_target = None
+        self.last_selected_timestamp = 0  # When target was selected
         self.running = False
         self.start_time = None  # Will be set when animation starts
+        self.gesture_active = False  # Whether gesture is currently being detected
+        self.arm_up_mode = False  # True if waiting for arm up, False if waiting for arm down
         
         # Initialize plot
         self.fig, self.ax = plt.subplots(figsize=(10, 8))
@@ -103,8 +106,8 @@ class LiveThetaAnimation:
         for anchor_id, pos in self.anchor_positions.items():
             x, y = pos[0], pos[1]
             
-            # Check if this is the last selected target
-            if anchor_id == self.last_selected_target:
+            # Check if this is the last selected target (and still within 5 seconds)
+            if anchor_id == self.last_selected_target and self.should_show_target():
                 # Highlight selected target
                 label = 'Last Selected Target' if not selected_anchor_plotted else None
                 self.ax.scatter(x, y, color='red', marker='^', s=250, 
@@ -131,10 +134,17 @@ class LiveThetaAnimation:
         if self.current_position is not None:
             pos_m = self.current_position / 1000.0  # Convert mm to meters
             
-            # Current position
-            self.ax.scatter(pos_m[0], -pos_m[1], color='blue', marker='o', s=200,
+            # Current position - color based on arm state
+            if self.arm_up_mode:
+                pos_color = 'orange'  # Orange when waiting for arm up
+                pos_label = 'Current Position (Arm Up)'
+            else:
+                pos_color = 'blue'    # Blue when waiting for arm down
+                pos_label = 'Current Position (Arm Down)'
+                
+            self.ax.scatter(pos_m[0], -pos_m[1], color=pos_color, marker='o', s=200,
                           edgecolor='white', linewidth=3, zorder=15,
-                          label='Current Position')
+                          label=pos_label)
             
             # Theta direction vector
             if self.current_theta != 0:
@@ -165,6 +175,14 @@ class LiveThetaAnimation:
         if handles:
             self.ax.legend(loc='upper right', fontsize=10)
         
+        # Add gesture detection indicator
+        if self.gesture_active:
+            self.ax.text(0.5, 0.95, 'GESTURE DETECTED - SELECTING TARGET', 
+                        transform=self.ax.transAxes,
+                        fontsize=14, fontweight='bold', ha='center', va='top',
+                        bbox=dict(boxstyle="round,pad=0.8", facecolor="yellow", 
+                                alpha=0.9, edgecolor='red', linewidth=2))
+        
 
         if self.start_time is not None:
             elapsed_seconds = int(time.time() - self.start_time)
@@ -178,16 +196,16 @@ class LiveThetaAnimation:
             elapsed_str = "Time: 0s"
         
         info_text = [
-
             elapsed_str
         ]
         
-            
-        if self.last_selected_target:
-            info_text.append(f"Last Selected: {self.last_selected_target}")
+        
+        # Add gesture status
+        if self.gesture_active:
+            info_text.append("Status: GESTURE ACTIVE")
         else:
-            info_text.append("No target selected yet")
-            
+            info_text.append("Status: Monitoring...")
+
         info_str = "\n".join(info_text)
         self.ax.text(0.02, 0.98, info_str, transform=self.ax.transAxes,
                    fontsize=10, verticalalignment='top', fontfamily='monospace',
@@ -297,6 +315,7 @@ class LiveThetaAnimation:
                             if timestamp > self.last_target_timestamp:
                                 self.last_selected_target = target
                                 self.last_target_timestamp = timestamp
+                                self.last_selected_timestamp = timestamp / 1e9  # Convert to seconds
                                 print(f"📍 Target updated: {target}")
                                 return True
             except FileNotFoundError:
@@ -304,6 +323,71 @@ class LiveThetaAnimation:
                 
         except Exception as e:
             print(f"File check error: {e}")
+            
+        return False
+
+    def check_gesture_activity(self):
+        """Check if a gesture is currently being detected"""
+        try:
+            conn = sqlite3.connect(self.db_path)
+            cur = conn.cursor()
+            
+            # Check for recent accelerometer activity (last 2 seconds)
+            current_time = time.time_ns()
+            threshold_time = current_time - 2e9  # 2 seconds ago
+            
+            # Look for significant accelerometer changes indicating gesture
+            cur.execute("""
+                SELECT COUNT(*) FROM accel_data 
+                WHERE timestamp > ? 
+                AND (ABS(x) > 8000 OR ABS(y) > 8000 OR ABS(z) > 8000)
+            """, (threshold_time,))
+            
+            result = cur.fetchone()
+            conn.close()
+            
+            if result and result[0] > 5:  # If more than 5 high-activity samples
+                self.gesture_active = True
+                return True
+            else:
+                self.gesture_active = False
+                return False
+                
+        except Exception as e:
+            print(f"Gesture check error: {e}")
+            self.gesture_active = False
+            return False
+
+    def should_show_target(self):
+        """Check if target should still be displayed (only when arm is up)"""
+        if self.last_selected_target is None:
+            return False
+        
+        # Show target only when in arm up mode (waiting for arm up gesture)
+        return self.arm_up_mode
+
+    def check_arm_state(self):
+        """Simple check if we're waiting for arm up or arm down"""
+        try:
+            gesture_file = "plots/gesture_state.txt"
+            try:
+                with open(gesture_file, 'r') as f:
+                    line = f.read().strip()
+                    if line:
+                        parts = line.split(',')
+                        if len(parts) >= 2:
+                            state = parts[1]
+                            # Just track if we're in arm up mode or not
+                            if "ARM_UP" in state:
+                                self.arm_up_mode = True
+                            else:
+                                self.arm_up_mode = False
+                            return True
+            except FileNotFoundError:
+                pass  # File doesn't exist yet
+                
+        except Exception as e:
+            print(f"Arm state check error: {e}")
             
         return False
     
@@ -317,9 +401,11 @@ class LiveThetaAnimation:
             position_updated = self.get_latest_position()
             theta_updated = self.get_latest_theta()
             target_updated = self.update_from_file()
+            gesture_updated = self.check_gesture_activity()
+            arm_state_updated = self.check_arm_state()
             
             # Redraw if anything updated
-            if position_updated or theta_updated or target_updated:
+            if position_updated or theta_updated or target_updated or gesture_updated or arm_state_updated:
                 self.setup_plot()
                 
         except Exception as e:
@@ -334,7 +420,7 @@ class LiveThetaAnimation:
         # Create animation and store it as instance variable
         self.ani = animation.FuncAnimation(
             self.fig, self.update_animation, 
-            interval=200,  # Update every 200ms
+            interval=100,  # Update every 200ms
             blit=False,
             cache_frame_data=False
         )

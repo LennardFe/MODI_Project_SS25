@@ -14,7 +14,7 @@ import time
 THETA = 0  # globally set by another thread (Initial Richtung + Theta) ~= Heading
 
 
-def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name="MODI", plot_distance_change=False):
+def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name="MODI", should_plot_distance_change=False):
     print("Selecting Target")
     print(f"Duration of gesture: {(gesture_end - gesture_start) * 1.0e-6}")
 
@@ -41,7 +41,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name=
 
     # Get anchor with minimum distance change (works because decrease is negative)
     anchor_min_distance_change = min(distance_changes, key=distance_changes.get)
-    if plot_distance_change:
+    if should_plot_distance_change:
         plot_distance_change(gesture_start, gesture_end, anchor_min_distance_change, database_name)
 
     selected_target = None
@@ -53,8 +53,6 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name=
         print("DISAGREEMENT. SELECTING BEST SCORING ANCHOR.")
         selected_target = get_best_scoring_anchor(distance_changes, bearings, method="Ole")
         print(f"Selected Target: {selected_target}")
-    
-    # Save selected target for live animation
     try:
         import os
         os.makedirs("plots", exist_ok=True)
@@ -63,10 +61,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name=
         print(f"📍 Target selection saved for animation: {selected_target}")
     except Exception as e:
         print(f"Error saving target selection: {e}")
-    
-    # Note: Static theta visualization removed - using live animation instead
-    # The live animation in the main thread shows real-time theta direction and selections
-    
+
     return selected_target
 
 
