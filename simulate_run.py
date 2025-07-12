@@ -4,7 +4,7 @@ import threading
 import os
 from target_selection.gesture_recognition import  monitor_gesture
 from setup_files.setup_db import setup_db
-from live_visualization import LiveVisualizer
+from live_theta_animation import LiveThetaAnimation
 from tqdm import tqdm
 # Configuration
 SOURCE_DB = "assets/MODI.db"  # Database with recorded data
@@ -198,11 +198,6 @@ class RealTimeSimulator:
             )
             gesture_thread.start()
             
-            # Start visualization
-            viz = LiveVisualizer(self.simulation_db)
-            viz_thread = threading.Thread(target=viz.start, daemon=True)
-            viz_thread.start()
-            
             # Start real-time data feed thread (like handle_imu_data and handle_uwb_data in main.py)
             data_feed_thread = threading.Thread(
                 target=self.real_time_data_feed,
@@ -214,14 +209,24 @@ class RealTimeSimulator:
             print("🚀 Simulation threads started - running concurrently like main.py")
             print("   📊 Data feed thread: feeding sensor data in real-time")
             print("   🎯 Gesture monitoring thread: watching for gestures")
+            print("   🖥️  Live animation will show theta direction and target selection")
             print("⏰ This will take the same amount of time as the original recording")
             
-            # Wait for data feed to complete
-            data_feed_thread.join()
+            # Give threads time to start
+            time.sleep(2)
             
-            # Let gesture monitoring finish processing any final data
-            print("⏳ Waiting for final gesture processing...")
-            time.sleep(3)
+            # Start live animation for simulation
+            animation = LiveThetaAnimation(self.simulation_db)
+            
+            try:
+                # Animation runs in main thread
+                animation.start()  # This blocks until window closed
+            except KeyboardInterrupt:
+                print("\n⏹️  Simulation interrupted by user")
+            finally:
+                # Stop simulation when animation window is closed
+                self.simulation_running = False
+                animation.stop()
             
         except KeyboardInterrupt:
             print("\n⏹️  Simulation interrupted by user")
@@ -231,8 +236,6 @@ class RealTimeSimulator:
             
         finally:
             self.simulation_running = False
-            if 'viz' in locals():
-                viz.stop()
             print("🏁 Simulation finished!")
 
 def main():
