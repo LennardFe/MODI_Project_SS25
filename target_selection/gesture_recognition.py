@@ -11,13 +11,12 @@ def connect(database_name="MODI"):
 def monitor_gesture(CALIBRATION_ANCHOR, database_name="MODI"):
     conn = connect(database_name)
     while True:
-        if check_last_axis_acceleration("z", database_name):
+        if check_last_axis_acceleration(conn, "z",):
             gesture_end = time.time_ns()
             cur = conn.cursor()
             gesture_start = cur.execute(
                 """SELECT timestamp FROM accel_data WHERE abs(z) < 0.2 AND abs(x) > 0.9 ORDER BY timestamp DESC LIMIT 1"""
             ).fetchone()[0]
-            conn.close()
 
             select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name)
             break
@@ -37,7 +36,6 @@ def monitor_arm_down(CALIBRATION_ANCHOR, database_name="MODI"):
 
 def check_last_axis_acceleration(conn, axis):
     cur = conn.cursor()
-    
     if axis == "x":
         last_axis_accelerations = cur.execute("""SELECT abs(x)
                                               FROM accel_data
@@ -49,8 +47,7 @@ def check_last_axis_acceleration(conn, axis):
                                                  ORDER BY timestamp DESC
                                                  LIMIT 10""").fetchall()
     
-    conn.close()
-    
+
     if len(last_axis_accelerations) > 0:
         for a in last_axis_accelerations:
             if a[0] > 1.1 or a[0] < 0.9:
