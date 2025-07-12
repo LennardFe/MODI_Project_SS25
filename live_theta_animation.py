@@ -54,10 +54,7 @@ class LiveThetaAnimation:
         self.current_theta = 0.0
         self.last_selected_target = None
         self.running = False
-        
-        print(f"🔧 Live animation using existing calculation functions")
-        print(f"📊 Database: {self.database_name}")
-        print(f"🎯 Reusing theta_calc.py, bearing_calc.py, selection_manager.py functions")
+        self.start_time = None  # Will be set when animation starts
         
         # Initialize plot
         self.fig, self.ax = plt.subplots(figsize=(10, 8))
@@ -168,23 +165,23 @@ class LiveThetaAnimation:
         if handles:
             self.ax.legend(loc='upper right', fontsize=10)
         
-        # Add info text
-        info_text = []
-        if self.current_position is not None:
-            pos_m = self.current_position / 1000.0
-            info_text.extend([
-                f"Position: ({pos_m[0]:.2f}, {pos_m[1]:.2f}) m",
-                f"Theta: {self.current_theta:.1f}°"
-            ])
-            
-            # Show bearings to anchors using existing calculation functions
-            bearings = self.calculate_bearings()
-            if bearings:
-                info_text.append("Bearings to anchors:")
-                for anchor_id, bearing in bearings.items():
-                    info_text.append(f"  {anchor_id}: {bearing:.1f}°")
+
+        if self.start_time is not None:
+            elapsed_seconds = int(time.time() - self.start_time)
+            minutes = elapsed_seconds // 60
+            seconds = elapsed_seconds % 60
+            if minutes > 0:
+                elapsed_str = f"Time: {minutes}m {seconds}s"
+            else:
+                elapsed_str = f"Time: {seconds}s"
         else:
-            info_text.append("Waiting for position data...")
+            elapsed_str = "Time: 0s"
+        
+        info_text = [
+
+            elapsed_str
+        ]
+        
             
         if self.last_selected_target:
             info_text.append(f"Last Selected: {self.last_selected_target}")
@@ -233,7 +230,7 @@ class LiveThetaAnimation:
         try:
             # Use existing theta calculation function
             theta_rad = get_theta(self.database_name)
-            self.current_theta = np.degrees(theta_rad)
+            self.current_theta = theta_rad
             return True
             
         except Exception as e:
@@ -280,20 +277,7 @@ class LiveThetaAnimation:
         except Exception as e:
             print(f"Bearing calculation error: {e}")
             return {}
-    
-    def check_for_new_target_selection(self):
-        """Check for new target selections in database"""
-        try:
-            # This is a simple approach - in practice you might want to store 
-            # target selections in a separate table or file
-            # For now, we'll check if there's recent gesture activity
-            
-            # You could implement a simple target selection storage mechanism here
-            # For demonstration, we'll just simulate checking
-            pass
-            
-        except Exception as e:
-            print(f"Target check error: {e}")
+
     
     def update_from_file(self):
         """Check for target selection updates from file"""
@@ -344,12 +328,8 @@ class LiveThetaAnimation:
         return []
     
     def start(self):
-        """Start the animation"""
-        print("Starting live theta animation...")
-        print("📍 Target selections will be highlighted automatically")
-        print("🔄 Animation updates in real-time")
-        
         self.running = True
+        self.start_time = time.time()  # Record start time when animation begins
         
         # Create animation and store it as instance variable
         self.ani = animation.FuncAnimation(
@@ -374,7 +354,11 @@ class LiveThetaAnimation:
     def stop(self):
         """Stop the animation"""
         self.running = False
-        if hasattr(self, 'ani'):
-            self.ani.event_source.stop()
-        plt.close(self.fig)
-        print("Animation stopped") 
+        try:
+            if hasattr(self, 'ani') and self.ani is not None:
+                self.ani.event_source.stop()
+            plt.close(self.fig)
+        except Exception as e:
+            print(f"Warning: Error stopping animation: {e}")
+        finally:
+            self.start_time = None  # Reset start time 

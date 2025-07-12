@@ -218,15 +218,8 @@ class RealTimeSimulator:
             # Start live animation for simulation
             animation = LiveThetaAnimation(self.simulation_db)
             
-            try:
-                # Animation runs in main thread
-                animation.start()  # This blocks until window closed
-            except KeyboardInterrupt:
-                print("\n⏹️  Simulation interrupted by user")
-            finally:
-                # Stop simulation when animation window is closed
-                self.simulation_running = False
-                animation.stop()
+            animation.start()  # This blocks until window closed
+            
             
         except KeyboardInterrupt:
             print("\n⏹️  Simulation interrupted by user")
@@ -235,6 +228,8 @@ class RealTimeSimulator:
             print(f"❌ Simulation error: {e}")
             
         finally:
+            self.simulation_running = False
+            animation.stop()
             self.simulation_running = False
             print("🏁 Simulation finished!")
 
