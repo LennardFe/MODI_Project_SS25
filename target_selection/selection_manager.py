@@ -18,7 +18,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name=
     print("Selecting Target")
     print(f"Duration of gesture: {(gesture_end - gesture_start) * 1.0e-6}")
 
-    theta = -get_theta(database_name)
+    theta = get_theta(database_name)
     print(f"Theta: {theta}")
 
     # Return python dictionary with ids and angle (bearing) of anchors
@@ -53,10 +53,10 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name=
 
 def plot_distance_change(gesture_start, gesture_end, anchor_id, database_name="MODI"):
     is_main_thread = threading.current_thread() is threading.main_thread()
-    
+
     if not is_main_thread:
         matplotlib.use('Agg')
-    
+
     conn = sqlite3.connect(f'assets/{database_name}.db', check_same_thread=False)
     cur = conn.cursor()
     plot_start = gesture_start - 2e9
@@ -141,7 +141,7 @@ def plot_distance_change(gesture_start, gesture_end, anchor_id, database_name="M
             filename = f"plots/distance_change_{anchor_id}_{timestamp_str}.png"
             plt.savefig(filename, dpi=300, bbox_inches='tight')
             plt.close()
-            
+
     except Exception as e:
         plt.close()
 
