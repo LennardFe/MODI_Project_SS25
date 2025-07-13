@@ -11,8 +11,6 @@ import matplotlib.pyplot as plt
 import threading
 import time
 
-THETA = 0  # globally set by another thread (Initial Richtung + Theta) ~= Heading
-
 
 def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name="MODI", should_plot_distance_change=False):
     print("Selecting Target")
