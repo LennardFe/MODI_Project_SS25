@@ -30,7 +30,7 @@ def monitor_gesture(CALIBRATION_ANCHOR, database_name="MODI"):
                 """SELECT timestamp FROM accel_data WHERE abs(z) < 0.2 AND abs(x) > 0.9 ORDER BY timestamp DESC LIMIT 1"""
             ).fetchone()[0]
 
-            select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name, False)
+            select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name)
             break
 
     monitor_arm_down(CALIBRATION_ANCHOR, database_name)
