@@ -5,3 +5,4 @@ bleak
 playsound3
 matplotlib
 plotly
+tqdm
