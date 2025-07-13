@@ -35,7 +35,6 @@ import sqlite3
 import numpy as np
 import json
 import time
-import threading
 import math
 
 # Import existing calculation functions to avoid code duplication

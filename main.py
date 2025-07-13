@@ -1,10 +1,10 @@
+from experiments.simulate_run import initialize_and_run_simulation
 from target_selection.gesture_recognition import monitor_gesture
 from data_handler.data_handler_imu import handle_imu_data
 from data_handler.data_handler_dwm import handle_uwb_data
 from setup_files.setup_dwm import setup_dwm
 from setup_files.setup_db import setup_db
 from threading import Thread
-from time import sleep
 
 CALIBRATION_ANCHOR = "5C19"
 
@@ -14,6 +14,10 @@ setup_db()
 # Push location to anchors and location mode for tag
 # setup_dwm()
 
-Thread(target=handle_imu_data).start()
-Thread(target=handle_uwb_data).start()
-Thread(target=monitor_gesture, args=(CALIBRATION_ANCHOR,)).start()
+# Start the threads for the handlers and gesture monitoring
+#Thread(target=handle_imu_data).start()
+#Thread(target=handle_uwb_data).start()
+#Thread(target=monitor_gesture, args=(CALIBRATION_ANCHOR,)).start()
+
+# Start simulation
+initialize_and_run_simulation()

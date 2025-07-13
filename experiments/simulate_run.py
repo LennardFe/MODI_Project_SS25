@@ -1,11 +1,8 @@
-import sqlite3
-import time
-import threading
-import os
 from target_selection.gesture_recognition import  monitor_gesture
-from setup_files.setup_db import setup_db
-from live_theta_animation import LiveThetaAnimation
+from visualization.live_theta_animation import LiveThetaAnimation
+import sqlite3, time, threading, os
 from tqdm import tqdm
+
 # Configuration
 SOURCE_DB = "assets/MODI.db"  # Database with recorded data
 CALIBRATION_ANCHOR = "5C19"
@@ -201,7 +198,7 @@ class RealTimeSimulator:
             animation.stop()
             self.simulation_running = False
 
-def main():
+def initialize_and_run_simulation():
     
     # Check database
     try:
@@ -226,4 +223,4 @@ def main():
     simulator.run_simulation()
 
 if __name__ == "__main__":
-    main()
+    initialize_and_run_simulation()
