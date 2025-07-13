@@ -18,7 +18,8 @@ INTEGRATION:
 import matplotlib
 # Try to set an interactive backend
 try:
-    matplotlib.use('macosx')  # Native macOS backend
+    #matplotlib.use('macosx')  # Native macOS backend
+    matplotlib.use('TkAgg')
 except ImportError:
     try:
         matplotlib.use('TkAgg')  # Second choice
