@@ -1,25 +1,24 @@
-import json
-
-from kivy.app import App
 from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.gridlayout import GridLayout
 from kivy.uix.label import Label
 from kivy.uix.image import Image
 from kivy.clock import Clock
+from kivy.app import App
+import json
 
-class MyApp(App):
+class LampVisualization(App):
 
     # Is called when app is started
     def build(self):
 
         # Paths to images
         self.img_sources = {
-            "on": "images/bulb_on.jpg",
-            "off": "images/bulb_off.jpg"
+            "on": "assets/images/bulb_on.jpg",
+            "off": "assets/images/bulb_off.jpg"
         }
 
         # Save labels from anchor config
-        with open("../../assets/anchor_config.json") as anchor_config:
+        with open("assets/anchor_config.json") as anchor_config:
             anchors = json.load(anchor_config)
         self.labels = [anchor["id"] for anchor in anchors]
 
@@ -67,4 +66,4 @@ class MyApp(App):
             img.source = self.img_sources["off"]
             img.reload()
 
-MyApp().run()
+LampVisualization().run()
