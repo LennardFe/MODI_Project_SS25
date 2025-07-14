@@ -8,7 +8,7 @@ from threading import Thread
 import matplotlib
 #matplotlib.use('macosx')
 matplotlib.use('TkAgg')
-CALIBRATION_ANCHOR = ("5C19")
+CALIBRATION_ANCHOR = "5C19"
 def main():
     # Drop and recreate the SQLite tables
     #setup_db()
