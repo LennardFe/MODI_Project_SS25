@@ -5,19 +5,25 @@ from data_handler.data_handler_dwm import handle_uwb_data
 from setup_files.setup_dwm import setup_dwm
 from setup_files.setup_db import setup_db
 from threading import Thread
+import matplotlib
+#matplotlib.use('macosx')
+matplotlib.use('TkAgg')
+CALIBRATION_ANCHOR = ("5C19")
+def main():
+    # Drop and recreate the SQLite tables
+    #setup_db()
 
-CALIBRATION_ANCHOR = "5C19"
+    # Push location to anchors and location mode for tag
+    # setup_dwm()
 
-# Drop and recreate the SQLite tables
-setup_db()
+    # Start the threads for the handlers and gesture monitoring
+    #Thread(target=handle_imu_data).start()
+    #Thread(target=handle_uwb_data).start()
+    #Thread(target=monitor_gesture, args=(CALIBRATION_ANCHOR,)).start()
 
-# Push location to anchors and location mode for tag
-# setup_dwm()
+    # Start simulation
+    initialize_and_run_simulation()
 
-# Start the threads for the handlers and gesture monitoring
-#Thread(target=handle_imu_data).start()
-#Thread(target=handle_uwb_data).start()
-#Thread(target=monitor_gesture, args=(CALIBRATION_ANCHOR,)).start()
 
-# Start simulation
-initialize_and_run_simulation()
+if __name__ == "__main__":
+    main()

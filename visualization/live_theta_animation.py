@@ -18,15 +18,14 @@ INTEGRATION:
 import matplotlib
 # Try to set an interactive backend
 try:
-    #matplotlib.use('macosx')  # Native macOS backend
-    matplotlib.use('TkAgg')
-except ImportError:
+    matplotlib.use('TkAgg')  # Native macOS backend
+except :
     try:
-        matplotlib.use('TkAgg')  # Second choice
-    except ImportError:
+        matplotlib.use('macosx')  # Second choice
+    except :
         try:
             matplotlib.use('Qt5Agg')  # Third choice
-        except ImportError:
+        except :
             matplotlib.use('Agg')  # Final fallback (non-interactive)
             print("Warning: Using non-interactive backend. Animation may not display properly.")
 
@@ -321,37 +320,6 @@ class LiveThetaAnimation:
             
         return False
 
-    def check_gesture_activity(self):
-        """Check if a gesture is currently being detected"""
-        try:
-            conn = sqlite3.connect(self.db_path)
-            cur = conn.cursor()
-            
-            # Check for recent accelerometer activity (last 2 seconds)
-            current_time = time.time_ns()
-            threshold_time = current_time - 2e9  # 2 seconds ago
-            
-            # Look for significant accelerometer changes indicating gesture
-            cur.execute("""
-                SELECT COUNT(*) FROM accel_data 
-                WHERE timestamp > ? 
-                AND (ABS(x) > 8000 OR ABS(y) > 8000 OR ABS(z) > 8000)
-            """, (threshold_time,))
-            
-            result = cur.fetchone()
-            conn.close()
-            
-            if result and result[0] > 5:  # If more than 5 high-activity samples
-                self.gesture_active = True
-                return True
-            else:
-                self.gesture_active = False
-                return False
-                
-        except Exception as e:
-            print(f"Gesture check error: {e}")
-            self.gesture_active = False
-            return False
 
     def should_show_target(self):
         """Check if target should still be displayed (only when arm is up)"""
@@ -396,11 +364,10 @@ class LiveThetaAnimation:
             position_updated = self.get_latest_position()
             theta_updated = self.get_latest_theta()
             target_updated = self.update_from_file()
-            gesture_updated = self.check_gesture_activity()
             arm_state_updated = self.check_arm_state()
             
             # Redraw if anything updated
-            if position_updated or theta_updated or target_updated or gesture_updated or arm_state_updated:
+            if position_updated or theta_updated or target_updated or arm_state_updated:
                 self.setup_plot()
                 
         except Exception as e:

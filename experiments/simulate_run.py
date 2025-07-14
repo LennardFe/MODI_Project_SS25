@@ -195,7 +195,6 @@ class RealTimeSimulator:
             
         finally:
             self.simulation_running = False
-            animation.stop()
             self.simulation_running = False
 
 def initialize_and_run_simulation():
