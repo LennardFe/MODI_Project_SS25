@@ -6,3 +6,4 @@ playsound3
 matplotlib
 plotly
 tqdm
+kivy

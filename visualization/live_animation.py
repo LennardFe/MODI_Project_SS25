@@ -129,17 +129,10 @@ class LiveThetaAnimation:
                 # Convert positions from mm to meters to match anchor positions
                 current_pos_m = self.current_position / 1000.0
                 
-                # 1. Reference vector: Fixed direction from initial position to calibration anchor
-                #    This represents "forward" direction when theta = 0°
                 ini_vec = self.anchor_positions[self.calibration_anchor][:2] - initial_pos_m
                 
-                # 2. Current heading: Apply theta rotation to the reference vector
-                #    This gives current looking direction regardless of current position
                 rotation_matrix = get_rotation_matrix(theta_rad)
                 heading_vector = np.dot(rotation_matrix, ini_vec)
-
-
-                
 
 
                 # Scale heading_vector to desired arrow length

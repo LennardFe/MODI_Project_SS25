@@ -1,5 +1,5 @@
 from target_selection.gesture_recognition import  monitor_gesture
-from visualization.live_theta_animation import LiveThetaAnimation
+from visualization.live_animation import LiveThetaAnimation
 import sqlite3, time, threading, os
 from tqdm import tqdm
 
