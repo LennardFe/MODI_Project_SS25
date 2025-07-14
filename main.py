@@ -5,6 +5,7 @@ from data_handler.data_handler_dwm import handle_uwb_data
 from setup_files.setup_dwm import setup_dwm
 from setup_files.setup_db import setup_db
 from threading import Thread
+from visualization.live_theta_animation import LiveThetaAnimation
 import matplotlib
 #matplotlib.use('macosx')
 matplotlib.use('TkAgg')
@@ -20,7 +21,8 @@ def main():
     #Thread(target=handle_imu_data).start()
     #Thread(target=handle_uwb_data).start()
     #Thread(target=monitor_gesture, args=(CALIBRATION_ANCHOR,)).start()
-
+    #live_theta_anim = LiveThetaAnimation()
+    #live_theta_anim.start()
     # Start simulation
     initialize_and_run_simulation()
 
