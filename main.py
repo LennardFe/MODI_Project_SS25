@@ -10,10 +10,10 @@ from visualization.live_animation import LiveThetaAnimation
 import matplotlib
 
 # For macOS users, uncomment the following line to use the macOS backend
-matplotlib.use('macosx')
+#matplotlib.use('macosx')
 
 # For Windows / Linux users, uncomment the following line to use the TkAgg backend
-#matplotlib.use('TkAgg')
+matplotlib.use('TkAgg')
 
 # Global variables
 CALIBRATION_ANCHOR = "5C19"
