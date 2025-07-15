@@ -10,7 +10,7 @@ def connect(database_name="MODI"):
     return conn
 
 
-def save_gesture_state(state, database_name="MODI"):
+def save_gesture_state(state):
     """Save current gesture state for visualization"""
     try:
         os.makedirs("plots", exist_ok=True)
@@ -27,7 +27,7 @@ def monitor_gesture(CALIBRATION_ANCHOR, kivy_instance, database_name="MODI"):
             conn,
             "z",
         ):
-            #save_gesture_state("ARM_UP", database_name)
+            save_gesture_state("ARM_UP")
             gesture_end = time.time_ns()
             cur = conn.cursor()
             gesture_start = cur.execute(
@@ -43,7 +43,7 @@ def monitor_arm_down(CALIBRATION_ANCHOR, kivy_instance,database_name="MODI"):
     conn = connect(database_name)
     while True:
         if check_last_axis_acceleration(conn, "x"):
-            save_gesture_state("ARM_DOWN", database_name)
+            save_gesture_state("ARM_DOWN")
             print("Arm down gesture recognized.")
             Clock.schedule_once(lambda dt: kivy_instance.set_all_off(), 0)
             break

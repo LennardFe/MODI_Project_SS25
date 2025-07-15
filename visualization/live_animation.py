@@ -62,8 +62,8 @@ class LiveThetaAnimation:
     def setup_plot(self):
         """Initialize the plot"""
         self.ax.clear()
-        self.ax.set_xlim(-3, 5)
-        self.ax.set_ylim(-4, 3)
+        self.ax.set_xlim(-2, 5)
+        self.ax.set_ylim(-2, 5)
         self.ax.set_aspect("equal")
         self.ax.grid(True, alpha=0.3)
         self.ax.set_title(
@@ -180,7 +180,6 @@ class LiveThetaAnimation:
                 theta_rad = np.radians(self.current_angle)
                 # Calculate heading vector using same logic as bearing calculations
                 # Convert positions from mm to meters to match anchor positions
-                current_pos_m = self.current_position / 1000.0
 
                 ini_vec = (
                     self.anchor_positions[self.calibration_anchor][:2] - initial_pos_m
@@ -213,7 +212,7 @@ class LiveThetaAnimation:
                     [],
                     color="green",
                     linewidth=4,
-                    label=f"Looking Direction (θ={self.current_angle:.1f}°)",
+                    label=f"Looking Direction (θ={self.current_angle % 360:.1f}°)",
                 )
         else:
             # Add placeholder elements for consistent legend

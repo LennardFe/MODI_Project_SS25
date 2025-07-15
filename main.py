@@ -13,9 +13,9 @@ from threading import Thread
 from visualization.lamp_visualization import LampVisualization
 from visualization.live_animation import LiveThetaAnimation
 import matplotlib
-
+from experiments.simulate_run import RealTimeSimulator
 # For macOS users, uncomment the following line to use the macOS backend
-# matplotlib.use('macosx')
+#matplotlib.use('macosx')
 
 # For Windows / Linux users, uncomment the following line to use the TkAgg backend
 # matplotlib.use('TkAgg')
@@ -29,13 +29,13 @@ def main():
     setup_db()
 
     # Push location to anchors and location mode for tag
-    # setup_dwm_thread = Thread(target=setup_dwm)
-    # setup_dwm_thread.start()
-    # setup_dwm_thread.join()
+    setup_dwm_thread = Thread(target=setup_dwm)
+    setup_dwm_thread.start()
+    setup_dwm_thread.join()
 
     # Start the threads for the handlers and gesture monitoring
-    # Thread(target=handle_accel).start()
-    # Thread(target=handle_gyro).start()
+    #Thread(target=handle_accel).start()
+    #Thread(target=handle_gyro).start()
     Thread(target=handle_imu_data).start()
     Thread(target=handle_uwb_data).start()
 
@@ -46,7 +46,8 @@ def main():
     # live_theta_anim = LiveThetaAnimation()
     # live_theta_anim.start()
     # Start simulation
-    # initialize_and_run_simulation()
+    #simulator = RealTimeSimulator()
+    #simulator.run_simulation()
 
     # Start the lamp visualization
     # LampVisualization().run()

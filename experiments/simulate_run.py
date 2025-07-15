@@ -9,7 +9,7 @@ CALIBRATION_ANCHOR = "5C19"
 
 
 class RealTimeSimulator:
-    def __init__(self, source_db):
+    def __init__(self, source_db=SOURCE_DB):
         self.source_db = source_db
         self.simulation_db = (
             "assets/MODI_simulation.db"  # Temporary simulation database
