@@ -42,7 +42,6 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance,
         print("SUCCESS. CONCURRING OPINIONS.")
         selected_target = anchor_min_bearing
         print(f"Selected Target: {selected_target}")
-        print(type(selected_target))
         Clock.schedule_once(lambda dt: kivy_instance.set_on(selected_target), 0)
     else:
         print("DISAGREEMENT. SELECTING BEST SCORING ANCHOR.")
@@ -50,7 +49,6 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance,
             distance_changes, bearings, method="Ole"
         )
         print(f"Selected Target: {selected_target}")
-        print(type(selected_target))
         Clock.schedule_once(lambda dt: kivy_instance.set_on(selected_target), 0)
     try:
         import os
