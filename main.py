@@ -3,8 +3,8 @@ from target_selection.gesture_recognition import monitor_gesture
 #from data_handler.data_handler_imu_gyro import handle_gyro
 #from data_handler.data_handler_imu_accel import handle_accel
 from data_handler.data_handler_dwm import handle_uwb_data
-from data_handler.data_handler_imu_new import handle_imu_data
-#from data_handler.data_handler_imu import handle_imu_data
+#from data_handler.data_handler_imu_new import handle_imu_data
+from data_handler.data_handler_imu import handle_imu_data
 
 from setup_files.setup_dwm import setup_dwm
 from setup_files.setup_db import setup_db

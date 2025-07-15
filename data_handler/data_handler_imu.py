@@ -13,6 +13,11 @@ ADDRESS = "B0:6D:06:5A:59:D1"
 
 db_queue = Queue()
 
+# Shared timestamps for watchdog
+last_gyro_time = time.time()
+last_accel_time = time.time()
+WATCHDOG_TIMEOUT = 5  # seconds
+
 
 def db_worker():
     conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
@@ -40,20 +45,30 @@ def db_worker():
 
 def make_gyro_handler():
     def handler(_, data):
+        global last_gyro_time
         value = struct.unpack("<fff", data)
+        last_gyro_time = time.time()
         db_queue.put(("gyro_data", time.time_ns(), *value))
-        print("Gyro handler still running")
-
     return handler
 
 
 def make_accel_handler():
     def handler(_, data):
+        global last_accel_time
         value = struct.unpack("<fff", data)
+        last_accel_time = time.time()
         db_queue.put(("accel_data", time.time_ns(), *value))
-        print("Accel handler still running")
-
     return handler
+
+
+async def watchdog():
+    while True:
+        await asyncio.sleep(1)
+        now = time.time()
+        if now - last_gyro_time > WATCHDOG_TIMEOUT:
+            print("Warning: No GYRO data received in the last 5 seconds.")
+        if now - last_accel_time > WATCHDOG_TIMEOUT:
+            print("Warning: No ACCEL data received in the last 5 seconds.")
 
 
 async def read_data():
@@ -67,14 +82,15 @@ async def read_data():
         await client.start_notify(ACCEL_SERVICE_UUID, make_accel_handler())
         print("IMU found. Listening...")
 
-        await asyncio.Event().wait()  # block forever
+        # Run watchdog in background
+        await asyncio.gather(
+            watchdog(),
+            asyncio.Event().wait()  # keep running forever
+        )
 
 
 def handle_imu_data():
-    # Starte DB-Worker-Thread
     Thread(target=db_worker, daemon=False).start()
-
-    # Starte BLE-Loop
     asyncio.run(read_data())
 
 
