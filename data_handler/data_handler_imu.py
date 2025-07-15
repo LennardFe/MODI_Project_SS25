@@ -16,7 +16,7 @@ db_queue = Queue()
 # Shared timestamps for watchdog
 last_gyro_time = time.time()
 last_accel_time = time.time()
-WATCHDOG_TIMEOUT = 5  # seconds
+WATCHDOG_TIMEOUT = 1  # seconds
 
 
 def db_worker():
@@ -66,9 +66,9 @@ async def watchdog():
         await asyncio.sleep(1)
         now = time.time()
         if now - last_gyro_time > WATCHDOG_TIMEOUT:
-            print("Warning: No GYRO data received in the last 5 seconds.")
+            print(f"Warning: No GYRO data received in the last {WATCHDOG_TIMEOUT} seconds.")
         if now - last_accel_time > WATCHDOG_TIMEOUT:
-            print("Warning: No ACCEL data received in the last 5 seconds.")
+            print(f"Warning: No ACCEL data received in the last {WATCHDOG_TIMEOUT} seconds.")
 
 
 async def read_data():
@@ -78,16 +78,19 @@ async def read_data():
         return
 
     async with BleakClient(device) as client:
-        await client.start_notify(GYRO_SERVICE_UUID, make_gyro_handler())
-        await client.start_notify(ACCEL_SERVICE_UUID, make_accel_handler())
-        print("IMU found. Listening...")
+        try:
+            await asyncio.sleep(0.5)
+            await client.start_notify(GYRO_SERVICE_UUID, make_gyro_handler())
+            await client.start_notify(ACCEL_SERVICE_UUID, make_accel_handler())
+            print("IMU found. Listening...")
 
-        # Run watchdog in background
-        await asyncio.gather(
-            watchdog(),
-            asyncio.Event().wait()  # keep running forever
-        )
-
+            # Run watchdog in background
+            await asyncio.gather(
+                watchdog(),
+                asyncio.Event().wait()  # keep running forever
+            )
+        except Exception as e:
+            print("Could not start: " + str(e))
 
 def handle_imu_data():
     Thread(target=db_worker, daemon=False).start()
