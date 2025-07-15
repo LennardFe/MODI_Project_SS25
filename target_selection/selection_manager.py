@@ -4,10 +4,12 @@ from target_selection.calculations.theta_calc import get_theta
 from target_selection.calculations.score_calc import get_best_scoring_anchor
 import sqlite3, json, math, time
 import numpy as np
+from kivy.clock import Clock
+
 
 
 # Main function to select target based on thr given arguments
-def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name="MODI"):
+def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance,database_name="MODI"):
     print("Selecting Target")
     print(f"Duration of gesture: {(gesture_end - gesture_start) * 1.0e-6}")
 
@@ -40,12 +42,16 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name=
         print("SUCCESS. CONCURRING OPINIONS.")
         selected_target = anchor_min_bearing
         print(f"Selected Target: {selected_target}")
+        print(type(selected_target))
+        Clock.schedule_once(lambda dt: kivy_instance.set_on(selected_target), 0)
     else:
         print("DISAGREEMENT. SELECTING BEST SCORING ANCHOR.")
         selected_target = get_best_scoring_anchor(
             distance_changes, bearings, method="Ole"
         )
         print(f"Selected Target: {selected_target}")
+        print(type(selected_target))
+        Clock.schedule_once(lambda dt: kivy_instance.set_on(selected_target), 0)
     try:
         import os
 

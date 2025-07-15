@@ -62,7 +62,7 @@ def make_gyro_handler():
     def handler(_, data):
         value = struct.unpack("<fff", data)
         gyro_queue.append((time.time_ns(), *value))
-        print("Gyro handler still running")
+        #print("Gyro handler still running")
 
     return handler
 
@@ -71,18 +71,18 @@ def make_accel_handler():
     def handler(_, data):
         value = struct.unpack("<fff", data)
         accel_queue.append((time.time_ns(), *value))
-        print("Accel handler still running")
+        #print("Accel handler still running")
 
     return handler
 
 
 async def read_data():
-    device = await BleakScanner.find_device_by_address(ADDRESS, timeout=20)
-    if not device:
-        print("IMU not found")
-        return
+    #device = await BleakScanner.find_device_by_address(ADDRESS, timeout=20)
+    #if not device:
+        #print("IMU not found")
+        #return
 
-    async with BleakClient(device) as client:
+    async with BleakClient(ADDRESS, timeout=20) as client:
         await client.start_notify(GYRO_SERVICE_UUID, make_gyro_handler())
         await client.start_notify(ACCEL_SERVICE_UUID, make_accel_handler())
         print("IMU found. Listening...")

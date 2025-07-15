@@ -46,9 +46,9 @@ class LampVisualization(App):
         layout.add_widget(self.alert_label)
 
         # Test
-        Clock.schedule_once(lambda dt: self.set_on("DC0F"), 3)  # nach 3 Sekunden
-        Clock.schedule_once(lambda dt: self.set_all_off(), 5)  # nach 5 Sekunden
-        Clock.schedule_once(lambda dt: self.set_on("96BB"), 7)  # nach 3 Sekunden
+        #Clock.schedule_once(lambda dt: self.set_on("DC0F"), 0)  # nach 3 Sekunden
+        #Clock.schedule_once(lambda dt: self.set_all_off(), 5)  # nach 5 Sekunden
+        #Clock.schedule_once(lambda dt: self.set_on("96BB"), 7)  # nach 3 Sekunden
 
         return layout
 
