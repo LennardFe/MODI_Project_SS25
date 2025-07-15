@@ -5,7 +5,7 @@ import numpy as np
 
 
 def connect(database_name="MODI"):
-    conn = sqlite3.connect(f'assets/{database_name}.db')
+    conn = sqlite3.connect(f"assets/{database_name}.db")
     return conn
 
 
@@ -52,7 +52,7 @@ def get_distance_changes(start, end=0, database_name="MODI"):
 def get_distance_changesv2(start, end=0, database_name="MODI"):
     if end == 0:
         end = time.time_ns()
-    
+
     conn = connect(database_name)
     cur = conn.cursor()
     start_position = cur.execute(
@@ -77,7 +77,7 @@ def get_distance_changesv2(start, end=0, database_name="MODI"):
         (end,),
     ).fetchone()
     conn.close()
-    
+
     end_position = np.array([end_position[0], end_position[1]])
     with open("assets/anchor_config.json", "r") as f:
         anchors = json.load(f)

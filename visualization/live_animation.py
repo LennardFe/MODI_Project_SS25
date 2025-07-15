@@ -12,10 +12,13 @@ from target_selection.calculations.bearing_calc import get_rotation_matrix
 from target_selection.selection_manager import get_initial_position, read_anchor_config
 from target_selection.calculations.bearing_calc import get_bearings
 
+
 class LiveThetaAnimation:
     def __init__(self, db_path="assets/MODI.db", calibration_anchor="5C19"):
         self.db_path = db_path
-        self.database_name = db_path.split('/')[-1].replace('.db', '')  # Extract database name from path
+        self.database_name = db_path.split("/")[-1].replace(
+            ".db", ""
+        )  # Extract database name from path
         self.anchor_positions = self.read_anchor_config()
         self.calibration_anchor = calibration_anchor
         self.last_timestamp = 0
@@ -38,7 +41,6 @@ class LiveThetaAnimation:
     def read_anchor_config(self):
         """Load anchor configuration using existing function"""
         try:
-
             # Load full config to get z-coordinates
             with open("assets/anchor_config.json", "r") as f:
                 config = json.load(f)
@@ -62,12 +64,15 @@ class LiveThetaAnimation:
         self.ax.clear()
         self.ax.set_xlim(-3, 5)
         self.ax.set_ylim(-4, 3)
-        self.ax.set_aspect('equal')
+        self.ax.set_aspect("equal")
         self.ax.grid(True, alpha=0.3)
-        self.ax.set_title('Live UWB Tracking - Angle Direction & Target Selection',
-                         fontsize=14, fontweight='bold')
-        self.ax.set_xlabel('X (meters)', fontsize=12)
-        self.ax.set_ylabel('Y (meters)', fontsize=12)
+        self.ax.set_title(
+            "Live UWB Tracking - Angle Direction & Target Selection",
+            fontsize=14,
+            fontweight="bold",
+        )
+        self.ax.set_xlabel("X (meters)", fontsize=12)
+        self.ax.set_ylabel("Y (meters)", fontsize=12)
 
         # Draw anchors
         selected_anchor_plotted = False
@@ -79,26 +84,58 @@ class LiveThetaAnimation:
             # Check if this is the last selected target (and still within 5 seconds)
             if anchor_id == self.last_selected_target and self.should_show_target():
                 # Highlight selected target
-                label = 'Last Selected Target' if not selected_anchor_plotted else None
-                self.ax.scatter(x, y, color='red', marker='^', s=250,
-                              edgecolor='black', linewidth=3, zorder=10,
-                              label=label)
+                label = "Last Selected Target" if not selected_anchor_plotted else None
+                self.ax.scatter(
+                    x,
+                    y,
+                    color="red",
+                    marker="^",
+                    s=250,
+                    edgecolor="black",
+                    linewidth=3,
+                    zorder=10,
+                    label=label,
+                )
                 selected_anchor_plotted = True
                 # Add special label
-                self.ax.text(x + 0.15, y + 0.15, f'{anchor_id}\nLAST SELECTED',
-                           fontsize=10, fontweight='bold', ha='center',
-                           bbox=dict(boxstyle="round,pad=0.4", facecolor="red",
-                                   alpha=0.8, edgecolor='black'))
+                self.ax.text(
+                    x + 0.15,
+                    y + 0.15,
+                    f"{anchor_id}\nLAST SELECTED",
+                    fontsize=10,
+                    fontweight="bold",
+                    ha="center",
+                    bbox=dict(
+                        boxstyle="round,pad=0.4",
+                        facecolor="red",
+                        alpha=0.8,
+                        edgecolor="black",
+                    ),
+                )
             else:
                 # Normal anchor
-                label = 'Anchors' if not normal_anchor_plotted else None
-                self.ax.scatter(x, y, color='orange', marker='^', s=150,
-                              edgecolor='black', linewidth=1, zorder=8,
-                              label=label)
+                label = "Anchors" if not normal_anchor_plotted else None
+                self.ax.scatter(
+                    x,
+                    y,
+                    color="orange",
+                    marker="^",
+                    s=150,
+                    edgecolor="black",
+                    linewidth=1,
+                    zorder=8,
+                    label=label,
+                )
                 normal_anchor_plotted = True
                 # Normal label
-                self.ax.text(x + 0.1, y + 0.1, anchor_id, fontsize=10, fontweight='bold',
-                           bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8))
+                self.ax.text(
+                    x + 0.1,
+                    y + 0.1,
+                    anchor_id,
+                    fontsize=10,
+                    fontweight="bold",
+                    bbox=dict(boxstyle="round,pad=0.3", facecolor="white", alpha=0.8),
+                )
 
         # Draw current position if available
         if self.current_position is not None:
@@ -106,21 +143,37 @@ class LiveThetaAnimation:
 
             # Current position - color based on arm state
             if self.arm_up_mode:
-                pos_color = 'orange'  # Orange when waiting for arm up
-                pos_label = 'Current Position (Arm Up)'
+                pos_color = "orange"  # Orange when waiting for arm up
+                pos_label = "Current Position (Arm Up)"
             else:
-                pos_color = 'blue'    # Blue when waiting for arm down
-                pos_label = 'Current Position (Arm Down)'
+                pos_color = "blue"  # Blue when waiting for arm down
+                pos_label = "Current Position (Arm Down)"
 
-            self.ax.scatter(pos_m[0], pos_m[1], color=pos_color, marker='o', s=200,
-                          edgecolor='white', linewidth=3, zorder=15,
-                          label=pos_label)
-            intial_pos_color = 'black'
-            initial_pos_label = 'Initial Position'
+            self.ax.scatter(
+                pos_m[0],
+                pos_m[1],
+                color=pos_color,
+                marker="o",
+                s=200,
+                edgecolor="white",
+                linewidth=3,
+                zorder=15,
+                label=pos_label,
+            )
+            intial_pos_color = "black"
+            initial_pos_label = "Initial Position"
             initial_pos_m = self.initial_position / 1000.0
-            self.ax.scatter(initial_pos_m[0], initial_pos_m[1], color=intial_pos_color, marker='o', s=200,
-                          edgecolor='white', linewidth=3, zorder=15,
-                          label=initial_pos_label)
+            self.ax.scatter(
+                initial_pos_m[0],
+                initial_pos_m[1],
+                color=intial_pos_color,
+                marker="o",
+                s=200,
+                edgecolor="white",
+                linewidth=3,
+                zorder=15,
+                label=initial_pos_label,
+            )
 
             # Theta direction vector
             if self.current_position is not None:
@@ -128,55 +181,79 @@ class LiveThetaAnimation:
                 # Calculate heading vector using same logic as bearing calculations
                 # Convert positions from mm to meters to match anchor positions
                 current_pos_m = self.current_position / 1000.0
-                
-                ini_vec = self.anchor_positions[self.calibration_anchor][:2] - initial_pos_m
-                
+
+                ini_vec = (
+                    self.anchor_positions[self.calibration_anchor][:2] - initial_pos_m
+                )
+
                 rotation_matrix = get_rotation_matrix(theta_rad)
                 heading_vector = np.dot(rotation_matrix, ini_vec)
-
 
                 # Scale heading_vector to desired arrow length
                 arrow_unit_vec = heading_vector / np.linalg.norm(heading_vector)
                 arrow_length = 1.0  # 1 meter
                 arrow_scaled_vec = arrow_unit_vec * arrow_length
-                
-
 
                 # 3. Draw arrow from current position in the heading direction
                 #    Current position affects WHERE arrow starts, not WHICH direction it points
                 arrow_end_x = pos_m[0] + arrow_scaled_vec[0]  # pos_m = current position
                 arrow_end_y = pos_m[1] + arrow_scaled_vec[1]
 
-
-
                 # Draw theta direction arrow using annotate (better for legends)
-                self.ax.annotate('', xy=(arrow_end_x, arrow_end_y),
-                               xytext=(pos_m[0], pos_m[1]),
-                               arrowprops=dict(arrowstyle='->', lw=4, color='green'))
+                self.ax.annotate(
+                    "",
+                    xy=(arrow_end_x, arrow_end_y),
+                    xytext=(pos_m[0], pos_m[1]),
+                    arrowprops=dict(arrowstyle="->", lw=4, color="green"),
+                )
 
                 # Add invisible point for legend
-                self.ax.plot([], [], color='green', linewidth=4,
-                             label=f'Looking Direction (θ={self.current_angle:.1f}°)')
+                self.ax.plot(
+                    [],
+                    [],
+                    color="green",
+                    linewidth=4,
+                    label=f"Looking Direction (θ={self.current_angle:.1f}°)",
+                )
         else:
             # Add placeholder elements for consistent legend
-            self.ax.plot([], [], color='blue', marker='o', markersize=10,
-                       label='Current Position', linestyle='None')
-            self.ax.plot([], [], color='green', linewidth=4,
-                       label='Looking Direction (θ=0.0°)')
+            self.ax.plot(
+                [],
+                [],
+                color="blue",
+                marker="o",
+                markersize=10,
+                label="Current Position",
+                linestyle="None",
+            )
+            self.ax.plot(
+                [], [], color="green", linewidth=4, label="Looking Direction (θ=0.0°)"
+            )
 
         # Add legend only if we have labeled elements
         handles, labels = self.ax.get_legend_handles_labels()
         if handles:
-            self.ax.legend(loc='upper right', fontsize=10)
+            self.ax.legend(loc="upper right", fontsize=10)
 
         # Add gesture detection indicator
         if self.gesture_active:
-            self.ax.text(0.5, 0.95, 'GESTURE DETECTED - SELECTING TARGET',
-                        transform=self.ax.transAxes,
-                        fontsize=14, fontweight='bold', ha='center', va='top',
-                        bbox=dict(boxstyle="round,pad=0.8", facecolor="yellow",
-                                alpha=0.9, edgecolor='red', linewidth=2))
-
+            self.ax.text(
+                0.5,
+                0.95,
+                "GESTURE DETECTED - SELECTING TARGET",
+                transform=self.ax.transAxes,
+                fontsize=14,
+                fontweight="bold",
+                ha="center",
+                va="top",
+                bbox=dict(
+                    boxstyle="round,pad=0.8",
+                    facecolor="yellow",
+                    alpha=0.9,
+                    edgecolor="red",
+                    linewidth=2,
+                ),
+            )
 
         if self.start_time is not None:
             elapsed_seconds = int(time.time() - self.start_time)
@@ -189,16 +266,19 @@ class LiveThetaAnimation:
         else:
             elapsed_str = "Time: 0s"
 
-        info_text = [
-            elapsed_str
-        ]
-
-
+        info_text = [elapsed_str]
 
         info_str = "\n".join(info_text)
-        self.ax.text(0.02, 0.98, info_str, transform=self.ax.transAxes,
-                   fontsize=10, verticalalignment='top', fontfamily='monospace',
-                   bbox=dict(boxstyle="round,pad=0.5", facecolor="lightblue", alpha=0.8))
+        self.ax.text(
+            0.02,
+            0.98,
+            info_str,
+            transform=self.ax.transAxes,
+            fontsize=10,
+            verticalalignment="top",
+            fontfamily="monospace",
+            bbox=dict(boxstyle="round,pad=0.5", facecolor="lightblue", alpha=0.8),
+        )
 
     def get_latest_position(self):
         """Get latest position from database"""
@@ -207,7 +287,8 @@ class LiveThetaAnimation:
             cur = conn.cursor()
 
             # Get latest position
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT timestamp, est_position_x, est_position_y, est_position_z
                 FROM location_data 
                 WHERE est_position_x IS NOT NULL 
@@ -215,7 +296,9 @@ class LiveThetaAnimation:
                 AND est_position_z IS NOT NULL
                 AND timestamp > ?
                 ORDER BY timestamp DESC LIMIT 1
-            """, (self.last_timestamp,))
+            """,
+                (self.last_timestamp,),
+            )
 
             result = cur.fetchone()
             conn.close()
@@ -244,17 +327,16 @@ class LiveThetaAnimation:
             print(f"Theta calculation error: {e}")
             return False
 
-
     def update_from_file(self):
         """Check for target selection updates from file"""
         try:
             # Simple file-based communication for target selection
             target_file = "plots/last_selected_target.txt"
             try:
-                with open(target_file, 'r') as f:
+                with open(target_file, "r") as f:
                     line = f.read().strip()
                     if line:
-                        parts = line.split(',')
+                        parts = line.split(",")
                         if len(parts) >= 2:
                             timestamp = float(parts[0])
                             target = parts[1]
@@ -263,7 +345,9 @@ class LiveThetaAnimation:
                             if timestamp > self.last_target_timestamp:
                                 self.last_selected_target = target
                                 self.last_target_timestamp = timestamp
-                                self.last_selected_timestamp = timestamp / 1e9  # Convert to seconds
+                                self.last_selected_timestamp = (
+                                    timestamp / 1e9
+                                )  # Convert to seconds
                                 print(f"📍 Target updated: {target}")
                                 return True
             except FileNotFoundError:
@@ -285,11 +369,14 @@ class LiveThetaAnimation:
             threshold_time = current_time - 2e9  # 2 seconds ago
 
             # Look for significant accelerometer changes indicating gesture
-            cur.execute("""
+            cur.execute(
+                """
                 SELECT COUNT(*) FROM accel_data 
                 WHERE timestamp > ? 
                 AND (ABS(x) > 8000 OR ABS(y) > 8000 OR ABS(z) > 8000)
-            """, (threshold_time,))
+            """,
+                (threshold_time,),
+            )
 
             result = cur.fetchone()
             conn.close()
@@ -319,10 +406,10 @@ class LiveThetaAnimation:
         try:
             gesture_file = "plots/gesture_state.txt"
             try:
-                with open(gesture_file, 'r') as f:
+                with open(gesture_file, "r") as f:
                     line = f.read().strip()
                     if line:
-                        parts = line.split(',')
+                        parts = line.split(",")
                         if len(parts) >= 2:
                             state = parts[1]
                             # Just track if we're in arm up mode or not
@@ -353,7 +440,13 @@ class LiveThetaAnimation:
             arm_state_updated = self.check_arm_state()
 
             # Redraw if anything updated
-            if position_updated or theta_updated or target_updated or gesture_updated or arm_state_updated:
+            if (
+                position_updated
+                or theta_updated
+                or target_updated
+                or gesture_updated
+                or arm_state_updated
+            ):
                 self.setup_plot()
 
         except Exception as e:
@@ -367,14 +460,15 @@ class LiveThetaAnimation:
 
         # Create animation and store it as instance variable
         self.ani = animation.FuncAnimation(
-            self.fig, self.update_animation,
+            self.fig,
+            self.update_animation,
             interval=200,  # Update every 200ms
             blit=False,
-            cache_frame_data=False
+            cache_frame_data=False,
         )
-        
+
         plt.tight_layout()
-        
+
         # Show the plot - this will block until window is closed
         try:
             plt.show(block=True)
@@ -384,15 +478,15 @@ class LiveThetaAnimation:
             print(f"Animation display error: {e}")
         finally:
             self.stop()
-    
+
     def stop(self):
         """Stop the animation"""
         self.running = False
         try:
-            if hasattr(self, 'ani') and self.ani is not None:
+            if hasattr(self, "ani") and self.ani is not None:
                 self.ani.event_source.stop()
             plt.close(self.fig)
         except Exception as e:
             print(f"Warning: Error stopping animation: {e}")
         finally:
-            self.start_time = None  # Reset start time 
+            self.start_time = None  # Reset start time

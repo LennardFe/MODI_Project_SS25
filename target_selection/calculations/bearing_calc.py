@@ -28,11 +28,15 @@ def play_sounds(bearings):
         playsound(f"assets/sound_files/numbers/{char}.wav")
 
 
-def get_bearings(anchors, calibration_anchor, initial_position, theta_rad, current_position):
+def get_bearings(
+    anchors, calibration_anchor, initial_position, theta_rad, current_position
+):
     ini_vec = anchors[calibration_anchor] - initial_position
     rotation_matrix = get_rotation_matrix(theta_rad)
     current_heading_v = np.dot(rotation_matrix, ini_vec)
     bearings = {}
     for anchor_name, anchor in anchors.items():
-        bearings[anchor_name] = calc_bearing(current_heading_v, anchor, current_position)
+        bearings[anchor_name] = calc_bearing(
+            current_heading_v, anchor, current_position
+        )
     return bearings

@@ -5,6 +5,7 @@ from target_selection.calculations.score_calc import get_best_scoring_anchor
 import sqlite3, json, math, time
 import numpy as np
 
+
 # Main function to select target based on thr given arguments
 def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name="MODI"):
     print("Selecting Target")
@@ -27,7 +28,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name=
 
     print("Bearings: {}".format(bearings))
     print("Distance changes: {}".format(distance_changes))
-    
+
     # Get anchor with minimum bearing
     anchor_min_bearing = min(bearings, key=bearings.get)
 
@@ -41,10 +42,13 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name=
         print(f"Selected Target: {selected_target}")
     else:
         print("DISAGREEMENT. SELECTING BEST SCORING ANCHOR.")
-        selected_target = get_best_scoring_anchor(distance_changes, bearings, method="Ole")
+        selected_target = get_best_scoring_anchor(
+            distance_changes, bearings, method="Ole"
+        )
         print(f"Selected Target: {selected_target}")
     try:
         import os
+
         os.makedirs("plots", exist_ok=True)
         with open("plots/last_selected_target.txt", "w") as f:
             f.write(f"{time.time_ns()},{selected_target}")
@@ -53,6 +57,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, database_name=
         print(f"Error saving target selection: {e}")
 
     return selected_target
+
 
 # Read anchor configuration from JSON file
 def read_anchor_config():
@@ -66,7 +71,7 @@ def read_anchor_config():
 
 # First ever position of the tag, this is where we calibrated the tag to
 def get_initial_position(database_name="MODI"):
-    conn = sqlite3.connect(f'assets/{database_name}.db', check_same_thread=False)
+    conn = sqlite3.connect(f"assets/{database_name}.db", check_same_thread=False)
     initial_position = conn.execute(
         """SELECT est_position_x, est_position_y FROM location_data WHERE est_position_x IS NOT NULL AND est_position_y IS NOT NULL ORDER BY timestamp ASC LIMIT 1"""
     ).fetchone()
@@ -76,7 +81,7 @@ def get_initial_position(database_name="MODI"):
 
 # Get last known position of the tag before the gesture started
 def get_current_position(gesture_start, database_name="MODI"):
-    conn = sqlite3.connect(f'assets/{database_name}.db', check_same_thread=False)
+    conn = sqlite3.connect(f"assets/{database_name}.db", check_same_thread=False)
     current_position = conn.execute(
         """SELECT est_position_x, est_position_y FROM location_data WHERE timestamp < ? AND est_position_x IS NOT NULL AND est_position_y IS NOT NULL ORDER BY timestamp DESC LIMIT 1""",
         (gesture_start,),

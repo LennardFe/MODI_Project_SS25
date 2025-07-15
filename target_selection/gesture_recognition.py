@@ -5,7 +5,7 @@ import os
 
 
 def connect(database_name="MODI"):
-    conn = sqlite3.connect(f'assets/{database_name}.db', check_same_thread=False)
+    conn = sqlite3.connect(f"assets/{database_name}.db", check_same_thread=False)
     return conn
 
 
@@ -22,7 +22,10 @@ def save_gesture_state(state, database_name="MODI"):
 def monitor_gesture(CALIBRATION_ANCHOR, database_name="MODI"):
     conn = connect(database_name)
     while True:
-        if check_last_axis_acceleration(conn, "z",):
+        if check_last_axis_acceleration(
+            conn,
+            "z",
+        ):
             save_gesture_state("ARM_UP", database_name)
             gesture_end = time.time_ns()
             cur = conn.cursor()
@@ -59,7 +62,6 @@ def check_last_axis_acceleration(conn, axis):
                                                  FROM accel_data
                                                  ORDER BY timestamp DESC
                                                  LIMIT 10""").fetchall()
-    
 
     if len(last_axis_accelerations) > 0:
         for a in last_axis_accelerations:

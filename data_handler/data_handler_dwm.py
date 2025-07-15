@@ -38,7 +38,7 @@ def db_worker():
             est_position_z,
             est_position_qf,
         ) = item
-        
+
         try:
             cur.execute(
                 """INSERT INTO location_data (timestamp, anchor_id, 
@@ -57,7 +57,7 @@ def db_worker():
                 ),
             )
             conn.commit()
-                    
+
         except sqlite3.Error as se:
             print("Sqlite error in DWM data handler.")
             print(se)

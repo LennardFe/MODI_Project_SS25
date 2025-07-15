@@ -20,6 +20,7 @@ def db_worker():
     while True:
         item = db_queue.get()
         if item is None:
+            print("DB Worker exiting")
             break
         table, timestamp, x, y, z = item
         try:
@@ -41,6 +42,7 @@ def make_gyro_handler():
     def handler(_, data):
         value = struct.unpack("<fff", data)
         db_queue.put(("gyro_data", time.time_ns(), *value))
+        print("Gyro handler still running")
 
     return handler
 
@@ -49,6 +51,7 @@ def make_accel_handler():
     def handler(_, data):
         value = struct.unpack("<fff", data)
         db_queue.put(("accel_data", time.time_ns(), *value))
+        print("Accel handler still running")
 
     return handler
 
@@ -69,7 +72,7 @@ async def read_data():
 
 def handle_imu_data():
     # Starte DB-Worker-Thread
-    Thread(target=db_worker, daemon=True).start()
+    Thread(target=db_worker, daemon=False).start()
 
     # Starte BLE-Loop
     asyncio.run(read_data())

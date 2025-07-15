@@ -6,15 +6,14 @@ from kivy.clock import Clock
 from kivy.app import App
 import json
 
-class LampVisualization(App):
 
+class LampVisualization(App):
     # Is called when app is started
     def build(self):
-
         # Paths to images
         self.img_sources = {
             "on": "assets/images/bulb_on.jpg",
-            "off": "assets/images/bulb_off.jpg"
+            "off": "assets/images/bulb_off.jpg",
         }
 
         # Save labels from anchor config
@@ -41,7 +40,9 @@ class LampVisualization(App):
         layout.add_widget(self.image_grid)
 
         # Add alert label
-        self.alert_label = Label(text="", font_size="40sp", bold=True, color=(1, 0, 0, 1))
+        self.alert_label = Label(
+            text="", font_size="40sp", bold=True, color=(1, 0, 0, 1)
+        )
         layout.add_widget(self.alert_label)
 
         # Test
@@ -65,4 +66,3 @@ class LampVisualization(App):
         for img in self.images:
             img.source = self.img_sources["off"]
             img.reload()
-
