@@ -18,10 +18,9 @@ import matplotlib
 
 # Global variables
 CALIBRATION_ANCHOR = "5C19" # Anchor to face in the beginning to calibrate
-start_visualization = True # Set to False if you want to skip the visualization
 start_setup_dwm = False  # Set to False if you want to skip the DWM setup
 
-def main(start_setup_dwm, start_visualization):
+def main(start_setup_dwm):
     # Drop and recreate the SQLite tables
     setup_db()
 
@@ -31,17 +30,11 @@ def main(start_setup_dwm, start_visualization):
         setup_dwm_thread.start()
         setup_dwm_thread.join()
 
-    # Start the threads, with or without visualization
-    if start_visualization:
-        kivy_instance = LampVisualization()
-        Thread(target=handle_imu_data, args=(kivy_instance,)).start()
-        Thread(target=handle_uwb_data, args=(kivy_instance,)).start()
-        Thread(target=monitor_gesture, args=(CALIBRATION_ANCHOR, kivy_instance)).start()
-        kivy_instance.run()
-    else:
-        Thread(target=handle_imu_data, args=(None,)).start()
-        Thread(target=handle_uwb_data, args=(None,)).start()
-        Thread(target=monitor_gesture, args=(CALIBRATION_ANCHOR, None)).start()
+    kivy_instance = LampVisualization()
+    Thread(target=handle_imu_data, args=(kivy_instance,), daemon=True).start()
+    Thread(target=handle_uwb_data, args=(kivy_instance,), daemon=True).start()
+    Thread(target=monitor_gesture, args=(CALIBRATION_ANCHOR, kivy_instance), daemon=True).start()
+    kivy_instance.run()
 
 if __name__ == "__main__":
-    main(start_setup_dwm, start_visualization)
+    main(start_setup_dwm)
