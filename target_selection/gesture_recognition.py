@@ -42,8 +42,7 @@ def monitor_arm_down(CALIBRATION_ANCHOR, kivy_instance, database_name="MODI"):
         if check_last_axis_acceleration(conn, "x"):
             save_gesture_state("ARM_DOWN")
             print("Arm down gesture recognized.")
-            if kivy_instance is not None:
-                Clock.schedule_once(lambda _: kivy_instance.set_all_off(), 0)
+            Clock.schedule_once(lambda _: kivy_instance.set_all_off(), 0)
             break
 
     monitor_gesture(CALIBRATION_ANCHOR, kivy_instance, database_name)

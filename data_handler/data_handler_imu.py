@@ -62,18 +62,23 @@ def make_accel_handler():
 
 # Function to monitor the IMU data and print warnings if no data is received within the timeout period
 async def watchdog(kivy_instance):
+    global last_gyro_time, last_accel_time
     while True:
         await asyncio.sleep(1)
         now = time.time()
         if now - last_gyro_time > WATCHDOG_TIMEOUT:
             print(f"Warning: No GYRO data received in the last {WATCHDOG_TIMEOUT} seconds.")
-            if kivy_instance is not None:
-                Clock.schedule_once(lambda _: kivy_instance.set_error("No Gyro data!"), 0)
+            Clock.schedule_once(lambda _: kivy_instance.set_error("No Accel and/or Gyro data!"), 0)
+
+            last_gyro_time = now  # Reset last_gyro_time to avoid repeated warnings
+
         if now - last_accel_time > WATCHDOG_TIMEOUT:
             print(f"Warning: No ACCEL data received in the last {WATCHDOG_TIMEOUT} seconds.")
-            if kivy_instance is not None:
-                Clock.schedule_once(lambda _: kivy_instance.set_error("No Accel data!"), 0)
+            Clock.schedule_once(lambda _: kivy_instance.set_error("No Accel and/or Gyro data!"), 0)
 
+            last_accel_time = now  # Reset last_accel_time to avoid repeated warnings
+
+# TODO: Add reconnect logic to handle disconnections gracefully
 # Function to start notifiers for the different IMU services
 async def read_data(kivy_instance):
     device = await BleakScanner.find_device_by_address(ADDRESS, timeout=20)
@@ -89,8 +94,7 @@ async def read_data(kivy_instance):
 
             # Print and set label that IMU is found
             print("IMU found. Listening...")
-            if kivy_instance is not None:
-                Clock.schedule_once(lambda _: kivy_instance.set_imu_found(), 0)
+            Clock.schedule_once(lambda _: kivy_instance.set_imu_found(), 0)
 
             # Run watchdog in background
             await asyncio.gather(
@@ -101,9 +105,10 @@ async def read_data(kivy_instance):
         except Exception as e:
             print("Could not start: " + str(e))
 
+# TODO: Replace Thread with asyncio task 
 # Main function to handle IMU data
 def handle_imu_data(kivy_instance):
-    Thread(target=db_worker, daemon=False).start()
+    Thread(target=db_worker, daemon=True).start()
     asyncio.run(read_data(kivy_instance))
 
 # Test function

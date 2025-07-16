@@ -11,7 +11,8 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance,
     print("Selecting Target")
     print(f"Duration of gesture: {(gesture_end - gesture_start) * 1.0e-6}")
 
-    theta = get_theta(database_name)
+    # TODO: The - is kinda hacky rn, has to be looked into
+    theta = -get_theta(database_name)
     print(f"Theta: {theta}")
 
     # Return python dictionary with ids and angle (bearing) of anchors
@@ -40,23 +41,21 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance,
         print("SUCCESS. CONCURRING OPINIONS.")
         selected_target = anchor_min_bearing
         print(f"Selected Target: {selected_target}")
-        if kivy_instance is not None:
-            Clock.schedule_once(lambda _: kivy_instance.set_on(selected_target), 0)
+        Clock.schedule_once(lambda _: kivy_instance.set_on(selected_target), 0)
     else:
         print("DISAGREEMENT. SELECTING BEST SCORING ANCHOR.")
         selected_target = get_best_scoring_anchor(
             distance_changes, bearings, method="Ole"
         )
         print(f"Selected Target: {selected_target}")
-        if kivy_instance is not None:
-            Clock.schedule_once(lambda _: kivy_instance.set_on(selected_target), 0)
+        Clock.schedule_once(lambda _: kivy_instance.set_on(selected_target), 0)
     try:
         import os
 
         os.makedirs("plots", exist_ok=True)
         with open("plots/last_selected_target.txt", "w") as f:
             f.write(f"{time.time_ns()},{selected_target}")
-        print(f"📍 Target selection saved for animation: {selected_target}")
+        print(f"Target selection saved for animation: {selected_target}")
     except Exception as e:
         print(f"Error saving target selection: {e}")
 

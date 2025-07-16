@@ -135,6 +135,7 @@ def make_location_handler():
 
     return handler
 
+# TODO: Add reconnect logic to handle disconnections gracefully
 # Read data from the DWM Tag and handle notifications
 async def read_data(kivy_instance):
     device = await BleakScanner.find_device_by_address(ADDRESS, timeout=20)
@@ -149,14 +150,14 @@ async def read_data(kivy_instance):
 
             # Print and set label that the tag is found
             print("Tag found. Listening...")
-            if kivy_instance is not None:
-                Clock.schedule_once(lambda _: kivy_instance.set_dwm_found(), 0)
+            Clock.schedule_once(lambda _: kivy_instance.set_dwm_found(), 0)
 
             await asyncio.Event().wait()  # block forever until the program is terminated
 
         except Exception as e:
             print("Could not start: " + str(e))
 
+# TODO: Replace Thread with asyncio task 
 # Handle UWB data processing
 def handle_uwb_data(kivy_instance):
     Thread(target=db_worker, daemon=True).start()
