@@ -55,6 +55,8 @@ def get_distance_changesv2(start, end=0, database_name="MODI"):
 
     conn = connect(database_name)
     cur = conn.cursor()
+
+    # This can throw errors, this means we did a pointing gesture outside of the triangulation area
     start_position = cur.execute(
         """SELECT est_position_x, est_position_y
                FROM location_data
@@ -66,10 +68,10 @@ def get_distance_changesv2(start, end=0, database_name="MODI"):
         (start,),
     ).fetchone()
     
-     # This can throw errors, this means we did a pointing gesture outside of the triangulation area
+    # If no position is found after the start timestamp, use the last known position before the start
     if start_position is None:
         print("No position found after start timestamp, using last known position before start.")
-        # Get the first position before timestamp
+
         start_position = cur.execute(
             """SELECT est_position_x, est_position_y
                FROM location_data
