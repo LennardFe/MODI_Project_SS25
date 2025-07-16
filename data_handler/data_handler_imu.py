@@ -1,16 +1,16 @@
-import asyncio
 from bleak import BleakClient, BleakScanner
-import struct
-import sqlite3
-import time
-from queue import Queue
+import asyncio, struct, sqlite3, time
 from threading import Thread
+from kivy.clock import Clock
+from queue import Queue
 
+# Constants for the MODI IMU device
 DEVICE_NAME = "MODI_SW_IMU"
 GYRO_SERVICE_UUID = "09451b74-8500-4b3d-9090-bdf3187a98dd"
 ACCEL_SERVICE_UUID = "cc55d02b-0890-43ff-9c6b-c078d26a7d3f"
 ADDRESS = "B0:6D:06:5A:59:D1"
 
+# Queue for database operations
 db_queue = Queue()
 
 # Shared timestamps for watchdog
@@ -18,7 +18,7 @@ last_gyro_time = time.time()
 last_accel_time = time.time()
 WATCHDOG_TIMEOUT = 1  # seconds
 
-
+# Function to handle incoming IMU data and store it in the database
 def db_worker():
     conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
     cur = conn.cursor()
@@ -42,7 +42,7 @@ def db_worker():
 
     conn.close()
 
-
+# Function to create a handler for GYRO data notifications
 def make_gyro_handler():
     def handler(_, data):
         global last_gyro_time
@@ -51,7 +51,7 @@ def make_gyro_handler():
         db_queue.put(("gyro_data", time.time_ns(), *value))
     return handler
 
-
+# Function to create a handler for ACCEL data notifications
 def make_accel_handler():
     def handler(_, data):
         global last_accel_time
@@ -60,18 +60,22 @@ def make_accel_handler():
         db_queue.put(("accel_data", time.time_ns(), *value))
     return handler
 
-
-async def watchdog():
+# Function to monitor the IMU data and print warnings if no data is received within the timeout period
+async def watchdog(kivy_instance):
     while True:
         await asyncio.sleep(1)
         now = time.time()
         if now - last_gyro_time > WATCHDOG_TIMEOUT:
             print(f"Warning: No GYRO data received in the last {WATCHDOG_TIMEOUT} seconds.")
+            if kivy_instance is not None:
+                Clock.schedule_once(lambda _: kivy_instance.set_error("No Gyro data!"), 0)
         if now - last_accel_time > WATCHDOG_TIMEOUT:
             print(f"Warning: No ACCEL data received in the last {WATCHDOG_TIMEOUT} seconds.")
+            if kivy_instance is not None:
+                Clock.schedule_once(lambda _: kivy_instance.set_error("No Accel data!"), 0)
 
-
-async def read_data():
+# Function to start notifiers for the different IMU services
+async def read_data(kivy_instance):
     device = await BleakScanner.find_device_by_address(ADDRESS, timeout=20)
     if not device:
         print("IMU not found")
@@ -79,23 +83,29 @@ async def read_data():
 
     async with BleakClient(device) as client:
         try:
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(0.5) # Wait x seconds for the device to be ready
             await client.start_notify(GYRO_SERVICE_UUID, make_gyro_handler())
             await client.start_notify(ACCEL_SERVICE_UUID, make_accel_handler())
+
+            # Print and set label that IMU is found
             print("IMU found. Listening...")
+            if kivy_instance is not None:
+                Clock.schedule_once(lambda _: kivy_instance.set_imu_found(), 0)
 
             # Run watchdog in background
             await asyncio.gather(
-                watchdog(),
+                watchdog(kivy_instance),
                 asyncio.Event().wait()  # keep running forever
             )
+
         except Exception as e:
             print("Could not start: " + str(e))
 
-def handle_imu_data():
+# Main function to handle IMU data
+def handle_imu_data(kivy_instance):
     Thread(target=db_worker, daemon=False).start()
-    asyncio.run(read_data())
+    asyncio.run(read_data(kivy_instance))
 
-
+# Test function
 if __name__ == "__main__":
     handle_imu_data()
