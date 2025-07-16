@@ -65,7 +65,7 @@ def get_distance_changesv2(start, end=0, database_name="MODI"):
                LIMIT 1""",
         (start,),
     ).fetchone()
-    start_position = np.array([start_position[0], start_position[1]])
+    start_position = np.array([start_position[0], start_position[1]]) # TODO: This can throw errors
     end_position = cur.execute(
         """SELECT est_position_x, est_position_y
                FROM location_data
