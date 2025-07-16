@@ -1,17 +1,14 @@
 from target_selection.selection_manager import select_target
-import time
-import sqlite3
-import os
 from kivy.clock import Clock
+import time, sqlite3, os
 
-
+# Connect to the SQLite database
 def connect(database_name="MODI"):
     conn = sqlite3.connect(f"assets/{database_name}.db", check_same_thread=False)
     return conn
 
-
+# For live top down visualization
 def save_gesture_state(state):
-    """Save current gesture state for visualization"""
     try:
         os.makedirs("plots", exist_ok=True)
         with open("plots/gesture_state.txt", "w") as f:
@@ -19,7 +16,7 @@ def save_gesture_state(state):
     except Exception as e:
         print(f"Error saving gesture state: {e}")
 
-
+# Monitor the gesture, if motion is detected (via db call) get data from db and call select target
 def monitor_gesture(CALIBRATION_ANCHOR, kivy_instance, database_name="MODI"):
     conn = connect(database_name)
     while True:
@@ -38,19 +35,20 @@ def monitor_gesture(CALIBRATION_ANCHOR, kivy_instance, database_name="MODI"):
 
     monitor_arm_down(CALIBRATION_ANCHOR, kivy_instance, database_name)
 
-
-def monitor_arm_down(CALIBRATION_ANCHOR, kivy_instance,database_name="MODI"):
+# If gesture was monitored, then monitor when arm down gesture is performed and jump back to monitor_gesture
+def monitor_arm_down(CALIBRATION_ANCHOR, kivy_instance, database_name="MODI"):
     conn = connect(database_name)
     while True:
         if check_last_axis_acceleration(conn, "x"):
             save_gesture_state("ARM_DOWN")
             print("Arm down gesture recognized.")
-            Clock.schedule_once(lambda dt: kivy_instance.set_all_off(), 0)
+            if kivy_instance is not None:
+                Clock.schedule_once(lambda _: kivy_instance.set_all_off(), 0)
             break
 
     monitor_gesture(CALIBRATION_ANCHOR, kivy_instance, database_name)
 
-
+# Function to check if the arm movement was enough to be considered a gesture
 def check_last_axis_acceleration(conn, axis):
     cur = conn.cursor()
     if axis == "x":
@@ -72,6 +70,6 @@ def check_last_axis_acceleration(conn, axis):
     else:
         return False
 
-
+# Test function
 if __name__ == "__main__":
     monitor_gesture("5C19")

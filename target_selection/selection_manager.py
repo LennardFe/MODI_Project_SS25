@@ -1,15 +1,13 @@
-from target_selection.calculations.bearing_calc import get_bearings
 from target_selection.calculations.distance_calc import get_distance_changesv2
-from target_selection.calculations.theta_calc import get_theta
 from target_selection.calculations.score_calc import get_best_scoring_anchor
+from target_selection.calculations.bearing_calc import get_bearings
+from target_selection.calculations.theta_calc import get_theta
+from kivy.clock import Clock
 import sqlite3, json, math, time
 import numpy as np
-from kivy.clock import Clock
-
-
 
 # Main function to select target based on thr given arguments
-def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance,database_name="MODI"):
+def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance, database_name="MODI"):
     print("Selecting Target")
     print(f"Duration of gesture: {(gesture_end - gesture_start) * 1.0e-6}")
 
@@ -42,14 +40,16 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance,
         print("SUCCESS. CONCURRING OPINIONS.")
         selected_target = anchor_min_bearing
         print(f"Selected Target: {selected_target}")
-        Clock.schedule_once(lambda dt: kivy_instance.set_on(selected_target), 0)
+        if kivy_instance is not None:
+            Clock.schedule_once(lambda _: kivy_instance.set_on(selected_target), 0)
     else:
         print("DISAGREEMENT. SELECTING BEST SCORING ANCHOR.")
         selected_target = get_best_scoring_anchor(
             distance_changes, bearings, method="Ole"
         )
         print(f"Selected Target: {selected_target}")
-        Clock.schedule_once(lambda dt: kivy_instance.set_on(selected_target), 0)
+        if kivy_instance is not None:
+            Clock.schedule_once(lambda _: kivy_instance.set_on(selected_target), 0)
     try:
         import os
 
@@ -62,7 +62,6 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance,
 
     return selected_target
 
-
 # Read anchor configuration from JSON file
 def read_anchor_config():
     with open("assets/anchor_config.json", "r") as f:
@@ -72,7 +71,6 @@ def read_anchor_config():
         anchors[anchor["id"]] = np.array([anchor["x"], anchor["y"]])
     return anchors
 
-
 # First ever position of the tag, this is where we calibrated the tag to
 def get_initial_position(database_name="MODI"):
     conn = sqlite3.connect(f"assets/{database_name}.db", check_same_thread=False)
@@ -81,7 +79,6 @@ def get_initial_position(database_name="MODI"):
     ).fetchone()
     conn.close()
     return np.array(initial_position)
-
 
 # Get last known position of the tag before the gesture started
 def get_current_position(gesture_start, database_name="MODI"):
@@ -93,7 +90,7 @@ def get_current_position(gesture_start, database_name="MODI"):
     conn.close()
     return np.array(current_position)
 
-
+# Test function
 if __name__ == "__main__":
     anchors = read_anchor_config()
     print(anchors)
