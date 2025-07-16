@@ -55,7 +55,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance,
         os.makedirs("plots", exist_ok=True)
         with open("plots/last_selected_target.txt", "w") as f:
             f.write(f"{time.time_ns()},{selected_target}")
-        print(f"📍 Target selection saved for animation: {selected_target}")
+        print(f"Target selection saved for animation: {selected_target}")
     except Exception as e:
         print(f"Error saving target selection: {e}")
 
