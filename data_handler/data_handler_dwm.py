@@ -1,12 +1,8 @@
-import asyncio
-import sys
-
-from bleak import BleakClient
-import struct
-from queue import Queue
-import sqlite3
+from bleak import BleakClient, BleakScanner
+import asyncio, struct, sqlite3, time
 from threading import Thread
-import time
+from kivy.clock import Clock
+from queue import Queue
 
 # BLE Address for the DWM Tag
 ADDRESS = "CC:49:99:EE:1A:F4"
@@ -16,7 +12,6 @@ LOCATION_UUID = "003bbdf2-c634-4b3d-ab56-7ec889b89a37"
 
 # Queue for database operations
 db_queue = Queue()
-
 
 # Read newest data from the queue and write into the database
 def db_worker():
@@ -65,7 +60,6 @@ def db_worker():
             print(f"Error in DWM data handler: {e}")
 
     conn.close()
-
 
 # Parse the location data from the DWM Tag and add to queue
 def parse_location_data(data: bytearray):
@@ -134,7 +128,6 @@ def parse_location_data(data: bytearray):
     else:
         print("Unknown data type")
 
-
 # Create a notification handler for the location data
 def make_location_handler():
     def handler(_, data):
@@ -142,24 +135,33 @@ def make_location_handler():
 
     return handler
 
-
 # Read data from the DWM Tag and handle notifications
-async def read_data():
-    async with BleakClient(ADDRESS, timeout=20) as client:
-        print("Tag found. Listening...")
-        await client.start_notify(LOCATION_UUID, make_location_handler())
+async def read_data(kivy_instance):
+    device = await BleakScanner.find_device_by_address(ADDRESS, timeout=20)
+    if not device:
+        print("DWM Tag not found")
+        return
+    
+    async with BleakClient(device) as client:
+        try:
+            await asyncio.sleep(0.5) # Wait x seconds for the device to be ready
+            await client.start_notify(LOCATION_UUID, make_location_handler())
 
-        await asyncio.Event().wait()  # block forever until the program is terminated
+            # Print and set label that the tag is found
+            print("Tag found. Listening...")
+            if kivy_instance is not None:
+                Clock.schedule_once(lambda _: kivy_instance.set_dwm_found(), 0)
 
+            await asyncio.Event().wait()  # block forever until the program is terminated
+
+        except Exception as e:
+            print("Could not start: " + str(e))
 
 # Handle UWB data processing
-def handle_uwb_data():
-    # Read the data from the queue and write into database
+def handle_uwb_data(kivy_instance):
     Thread(target=db_worker, daemon=True).start()
+    asyncio.run(read_data(kivy_instance))
 
-    # Read data from the DWM Tag and write into the queue
-    asyncio.run(read_data())
-
-
+# Test function
 if __name__ == "__main__":
     handle_uwb_data()
