@@ -65,7 +65,8 @@ def get_distance_changesv2(start, end=0, database_name="MODI"):
                LIMIT 1""",
         (start,),
     ).fetchone()
-    start_position = np.array([start_position[0], start_position[1]]) # TODO: This can throw errors
+     # TODO: This can throw errors, this means we did a pointing gesture outside of the triangulation area
+    start_position = np.array([start_position[0], start_position[1]])
     end_position = cur.execute(
         """SELECT est_position_x, est_position_y
                FROM location_data
