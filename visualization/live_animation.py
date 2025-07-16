@@ -160,27 +160,13 @@ class LiveThetaAnimation:
                 zorder=15,
                 label=pos_label,
             )
-            intial_pos_color = "black"
-            initial_pos_label = "Initial Position"
-            initial_pos_m = self.initial_position / 1000.0
-            self.ax.scatter(
-                initial_pos_m[0],
-                initial_pos_m[1],
-                color=intial_pos_color,
-                marker="o",
-                s=200,
-                edgecolor="white",
-                linewidth=3,
-                zorder=15,
-                label=initial_pos_label,
-            )
 
             # Theta direction vector
             if self.current_position is not None:
                 theta_rad = np.radians(self.current_angle)
                 # Calculate heading vector using same logic as bearing calculations
                 # Convert positions from mm to meters to match anchor positions
-
+                initial_pos_m = self.initial_position / 1000.0
                 ini_vec = (
                     self.anchor_positions[self.calibration_anchor][:2] - initial_pos_m
                 )

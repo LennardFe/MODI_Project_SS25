@@ -21,6 +21,10 @@ CALIBRATION_ANCHOR = "5C19" # Anchor to face in the beginning to calibrate
 start_visualization = True # Set to False if you want to skip the visualization
 start_setup_dwm = False  # Set to False if you want to skip the DWM setup
 
+def run_simulation(with_animation=True, with_lamp_visualization=True):
+    simulator = RealTimeSimulator()
+    simulator.run_simulation(with_animation, with_lamp_visualization)
+
 def main(start_setup_dwm, start_visualization):
     # Drop and recreate the SQLite tables
     setup_db()
@@ -45,3 +49,4 @@ def main(start_setup_dwm, start_visualization):
 
 if __name__ == "__main__":
     main(start_setup_dwm, start_visualization)
+    #run_simulation(True,False)

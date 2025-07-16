@@ -1,7 +1,9 @@
 from target_selection.gesture_recognition import monitor_gesture
 from visualization.live_animation import LiveThetaAnimation
+from visualization.lamp_visualization import LampVisualization
 import sqlite3, time, threading, os
 from tqdm import tqdm
+from kivy.clock import Clock
 
 # Configuration
 SOURCE_DB = "assets/MODI.db"  # Database with recorded data
@@ -174,7 +176,7 @@ class RealTimeSimulator:
 
         conn.close()
 
-    def run_simulation(self):
+    def run_simulation(self, with_animation=True, with_lamp_visualization=True):
         """Run the real-time simulation"""
         all_data = self.load_historical_data()
 
@@ -183,26 +185,33 @@ class RealTimeSimulator:
             self.setup_simulation_database()
 
             self.simulation_running = True
-
+            kivy_instance = LampVisualization()
+            if with_lamp_visualization:
+                Clock.schedule_once(lambda _: kivy_instance.set_imu_found(), 0)
+                Clock.schedule_once(lambda _: kivy_instance.set_dwm_found(), 0)
             # Start gesture monitoring thread (like main.py)
             gesture_thread = threading.Thread(
                 target=monitor_gesture,
-                args=(CALIBRATION_ANCHOR, "MODI_simulation"),
+                args=(CALIBRATION_ANCHOR, kivy_instance, "MODI_simulation"),
                 daemon=True,
             )
             gesture_thread.start()
+
 
             # Start real-time data feed thread (like handle_imu_data and handle_uwb_data in main.py)
             data_feed_thread = threading.Thread(
                 target=self.real_time_data_feed, args=(all_data,), daemon=True
             )
             data_feed_thread.start()
+            if with_lamp_visualization:
+                kivy_instance.run()
 
             # Give threads time to start
             time.sleep(2)
+            if with_animation:
+                animation = LiveThetaAnimation(self.simulation_db)
+                animation.start()
 
-            animation = LiveThetaAnimation(self.simulation_db)
-            animation.start()
 
         finally:
             self.simulation_running = False
