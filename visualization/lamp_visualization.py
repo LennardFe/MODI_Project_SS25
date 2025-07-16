@@ -9,6 +9,9 @@ import json
 class LampVisualization(App):
     # Is called when app is started
     def build(self):
+        
+        self.title = "Lamp Visualization"
+
         # Paths to images
         self.img_sources = {
             "on": "assets/images/bulb_on.jpg",
