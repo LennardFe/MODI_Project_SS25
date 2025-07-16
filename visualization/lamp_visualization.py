@@ -6,7 +6,6 @@ from kivy.clock import Clock
 from kivy.app import App
 import json
 
-
 class LampVisualization(App):
     # Is called when app is started
     def build(self):
@@ -41,19 +40,31 @@ class LampVisualization(App):
 
         # Add alert label
         self.alert_label = Label(
-            text="", font_size="40sp", bold=True, color=(1, 0, 0, 1)
+            text="", font_size="30sp", bold=True, color=(0.2, 0.6, 1, 1), size_hint_y=None, height=40
         )
         layout.add_widget(self.alert_label)
 
-        # Test
-        #Clock.schedule_once(lambda dt: self.set_on("DC0F"), 0)  # nach 3 Sekunden
-        #Clock.schedule_once(lambda dt: self.set_all_off(), 5)  # nach 5 Sekunden
-        #Clock.schedule_once(lambda dt: self.set_on("96BB"), 7)  # nach 3 Sekunden
+        # Add IMU found label
+        self.imu_label = Label(
+            text="IMU NOT FOUND", font_size="20sp", bold=False, color=(1, 0, 0, 1), size_hint_y=None, height=25
+        )
+        layout.add_widget(self.imu_label)
+
+        # Add DWM found label
+        self.dwm_label = Label(
+            text="DWM NOT FOUND", font_size="20sp", bold=False, color=(1, 0, 0, 1), size_hint_y=None, height=25
+        )
+        layout.add_widget(self.dwm_label)
+
+        # Add potential error label
+        self.error_label = Label(
+            text="", font_size="20sp", bold=False, color=(1, 0, 0, 1), size_hint_y=None, height=25
+        )
+        layout.add_widget(self.error_label)
 
         return layout
 
     def set_on(self, anchor_id):
-        """Show turned-on light bulb for one anchor_id."""
         if anchor_id in self.labels:
             self.alert_label.text = "SELECTION EVENT"
             index = self.labels.index(anchor_id)
@@ -61,8 +72,18 @@ class LampVisualization(App):
             self.images[index].reload()
 
     def set_all_off(self):
-        """Turn all light bulbs off."""
         self.alert_label.text = ""
         for img in self.images:
             img.source = self.img_sources["off"]
             img.reload()
+
+    def set_imu_found(self):
+        self.imu_label.text = "IMU FOUND"
+        self.imu_label.color = (0, 1, 0, 1)
+
+    def set_dwm_found(self):
+        self.dwm_label.text = "DWM FOUND"
+        self.dwm_label.color = (0, 1, 0, 1)
+
+    def set_error(self, error_message):
+        self.error_label.text = f"ERROR: {error_message}"
