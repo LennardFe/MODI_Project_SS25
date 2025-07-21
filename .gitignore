@@ -4,3 +4,4 @@ plots/
 *.pyc
 *.db-journal
 *.db
+animation/media
