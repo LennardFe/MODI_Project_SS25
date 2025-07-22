@@ -9,7 +9,7 @@ def connect(database_name="MODI"):
     return conn
 
 
-def get_distance_changes(start, end=0, database_name="MODI"):
+def get_distance_changes(start, end=0, method="absolute",database_name="MODI"):
     if end == 0:
         end = time.time_ns()
     conn = connect(database_name)
@@ -42,14 +42,15 @@ def get_distance_changes(start, end=0, database_name="MODI"):
                 anchor_id,
             ),
         ).fetchone()
-        delta_distance = end_distance[0] - start_distance[0]
-        distance_change = delta_distance / start_distance[0]
+        distance_change = end_distance[0] - start_distance[0]
+        if method == "relative":
+            distance_change = distance_change / start_distance[0]
         distance_changes[anchor_id] = distance_change
     conn.close()
     return distance_changes
 
 
-def get_distance_changesv2(start, end=0, database_name="MODI"):
+def get_distance_changesv2(start, end=0, method="absolute",database_name="MODI"):
     if end == 0:
         end = time.time_ns()
 
@@ -102,9 +103,11 @@ def get_distance_changesv2(start, end=0, database_name="MODI"):
     distance_changes = {}
     for anchor in anchors:
         anchor_position = np.array([anchor["x"], anchor["y"]])
-        start_distance = np.linalg.norm(anchor_position - start_position)
-        end_distance = np.linalg.norm(anchor_position - end_position)
-        distance_change = (end_distance - start_distance) / float(start_distance)
+        start_distance = float(np.linalg.norm(anchor_position - start_position))
+        end_distance = float(np.linalg.norm(anchor_position - end_position))
+        distance_change = end_distance - start_distance
+        if method == "relative":
+            distance_change = distance_change / start_distance
         distance_changes[anchor["id"]] = distance_change
     return distance_changes
 

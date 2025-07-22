@@ -25,7 +25,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance,
     )
 
     # Get the distance changes from the gesture start to the gesture end
-    distance_changes = get_distance_changesv2(gesture_start, gesture_end, database_name)
+    distance_changes = get_distance_changesv2(gesture_start, gesture_end, "absolute", database_name)
 
     print("Bearings: {}".format(bearings))
     print("Distance changes: {}".format(distance_changes))
