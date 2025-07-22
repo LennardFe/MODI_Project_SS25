@@ -114,15 +114,15 @@ class Bearings(Scene):
         tag_position.remove(tag_position_label)
         #tag_position_label.next_to(tag_position_dot.get_center(), RIGHT)
         self.add(tag_position_label)
-
+        self.play(FadeOut(ini_vec_label))
+        ini_vec_with_label.remove(ini_vec_label)
         # Draw faint reference line before rotation
         line_ref = ini_vec.copy()
         line_ref.set_color(GREY)
         line_ref.tip.set_color(GREY)
         self.add(line_ref)
         self.wait(0.2)
-        self.play(FadeOut(ini_vec_label))
-        ini_vec_with_label.remove(ini_vec_label)
+
 
         # Rotate everything (arrow and label move together)
         theta = 150
