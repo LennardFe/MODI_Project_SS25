@@ -63,13 +63,13 @@ class Bearings(Scene):
             group = VGroup(dot, label)
             anchors.add(group)
 
-        title = Title(
+        #title = Title(
             r"Bearing Calculation",
             include_underline=False,
             font_size=40,
-        )
+        #)
 
-        self.add(title, grid, grid_labels)
+        self.add(grid, grid_labels)
         for anchor in anchors:
             self.play(FadeIn(anchor))
             self.wait(0.5)
