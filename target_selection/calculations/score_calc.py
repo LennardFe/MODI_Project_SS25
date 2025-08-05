@@ -14,6 +14,7 @@ def get_best_scoring_anchor(distance_changes, bearings, method):
         distance_bearing_to_best = bearings_sorted[1][1] - bearings_sorted[0][1]
 
         # Calculate score
+        # TODO Catch divison through zero
         distance_changes_gap = distance_difference_to_best / (
             distange_changes_sorted[-1][1] - distange_changes_sorted[0][1]
         )
