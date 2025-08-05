@@ -19,8 +19,8 @@ last_accel_time = time.time()
 WATCHDOG_TIMEOUT = 1  # seconds
 
 # Function to handle incoming IMU data and store it in the database
-def db_worker():
-    conn = sqlite3.connect("assets/MODI.db", check_same_thread=False)
+def db_worker(db_name):
+    conn = sqlite3.connect(f"assets/{db_name}.db", check_same_thread=False)
     cur = conn.cursor()
     while True:
         item = db_queue.get()
@@ -107,8 +107,8 @@ async def read_data(kivy_instance):
 
 # TODO: Replace Thread with asyncio task 
 # Main function to handle IMU data
-def handle_imu_data(kivy_instance):
-    Thread(target=db_worker, daemon=True).start()
+def handle_imu_data(kivy_instance, db_name):
+    Thread(target=db_worker, args=(db_name,),daemon=True).start()
     asyncio.run(read_data(kivy_instance))
 
 # Test function

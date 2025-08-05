@@ -39,7 +39,7 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance,
     selected_target = None
 
     series = 1
-    it = 1
+    it = 2
     if anchor_min_bearing == anchor_min_distance_change:
         print("SUCCESS. CONCURRING OPINIONS.")
         selected_target = anchor_min_bearing
