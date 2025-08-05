@@ -37,11 +37,16 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance,
     anchor_min_distance_change = min(distance_changes, key=distance_changes.get)
 
     selected_target = None
+
+    series = 1
+    it = 1
     if anchor_min_bearing == anchor_min_distance_change:
         print("SUCCESS. CONCURRING OPINIONS.")
         selected_target = anchor_min_bearing
         print(f"Selected Target: {selected_target}")
         Clock.schedule_once(lambda _: kivy_instance.set_on(selected_target), 0)
+        with open(f"results/{series}_{it}_selections.csv", "a") as f:
+            f.write(f"{time.time_ns()},{selected_target},{anchor_min_distance_change},{anchor_min_bearing}\n")
     else:
         print("DISAGREEMENT. SELECTING BEST SCORING ANCHOR.")
         selected_target = get_best_scoring_anchor(
@@ -49,6 +54,8 @@ def select_target(gesture_start, gesture_end, CALIBRATION_ANCHOR, kivy_instance,
         )
         print(f"Selected Target: {selected_target}")
         Clock.schedule_once(lambda _: kivy_instance.set_on(selected_target), 0)
+        with open(f"results/{series}_{it}_selections.csv", "a") as f:
+            f.write(f"{time.time_ns()},{selected_target},{anchor_min_distance_change},{anchor_min_bearing}\n")
     try:
         import os
 
