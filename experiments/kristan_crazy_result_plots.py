@@ -794,6 +794,453 @@ def plot_spacing_detailed_analysis():
     plt.savefig("../plots/spacing/accuracy_vs_spacing.svg", bbox_inches="tight")
     plt.close()
 
+def plot_accuracy_barplots():
+    """Create bar plots showing accuracy for each experiment by method"""
+    os.makedirs("../plots/barplots", exist_ok=True)
+    
+    # 1. Overall accuracy comparison across all experiments
+    experiment_accuracy = []
+    
+    # Define the order: Baseline, User Position, Obstruction, then Spacing (2m, 1m, 0.5m)
+    experiment_order = [
+        (1, "Baseline"),
+        (2, "User Position"),
+        (3, "Obstruction"),
+        (4, "Spacing 2 m", "2 m"),
+        (4, "Spacing 1 m", "1 m"), 
+        (4, "Spacing 0.5 m", "0.5 m")
+    ]
+    
+    for item in experiment_order:
+        if len(item) == 2:  # Regular experiments (1, 2, 3)
+            exp, exp_name = item
+            exp_data = accuracy_metrics[accuracy_metrics["experiment"] == exp]
+            for method in METHODS:
+                method_data = exp_data[exp_data["method"] == method]
+                if not method_data.empty:
+                    mean_acc = method_data["accuracy"].mean()
+                    std_acc = method_data["accuracy"].std()
+                    experiment_accuracy.append({
+                        "experiment": exp_name,
+                        "method": method,
+                        "accuracy": mean_acc * 100,
+                        "std": std_acc * 100 if not pd.isna(std_acc) else 0
+                    })
+        else:  # Spacing experiments (4)
+            exp, exp_name, spacing = item
+            exp_data = accuracy_metrics[accuracy_metrics["experiment"] == exp]
+            spacing_data = exp_data[exp_data["spacing"] == spacing]
+            for method in METHODS:
+                method_data = spacing_data[spacing_data["method"] == method]
+                if not method_data.empty:
+                    mean_acc = method_data["accuracy"].mean()
+                    std_acc = method_data["accuracy"].std()
+                    experiment_accuracy.append({
+                        "experiment": exp_name,
+                        "method": method,
+                        "accuracy": mean_acc * 100,
+                        "std": std_acc * 100 if not pd.isna(std_acc) else 0
+                    })
+    
+    df_exp_acc = pd.DataFrame(experiment_accuracy)
+    
+    # Create overall comparison bar plot
+    plt.figure(figsize=(14, 8))
+    
+    # Define colors for methods
+    colors = {"IMU Bearing": "C0", "UWB Distance": "C1", "Sensor Fusion": "C2"}
+    
+    # Create grouped bar plot
+    experiment_names = ["Baseline", "User Position", "Obstruction", "Spacing 2 m", "Spacing 1 m", "Spacing 0.5 m"]
+    x_positions = np.arange(len(experiment_names))
+    bar_width = 0.25
+    
+    for i, method in enumerate(METHODS):
+        method_data = df_exp_acc[df_exp_acc["method"] == method]
+        accuracy_values = []
+        error_values = []
+        
+        for exp_name in experiment_names:
+            exp_data = method_data[method_data["experiment"] == exp_name]
+            if not exp_data.empty:
+                accuracy_values.append(exp_data["accuracy"].iloc[0])
+                error_values.append(exp_data["std"].iloc[0])
+            else:
+                accuracy_values.append(0)
+                error_values.append(0)
+        
+        bars = plt.bar(x_positions + i * bar_width, accuracy_values, 
+                      bar_width, label=method, color=colors[method], 
+                      alpha=0.8, yerr=error_values, capsize=3)
+    
+    plt.xlabel("Experimental Condition", fontsize=12)
+    plt.ylabel("Accuracy (%)", fontsize=12)
+    plt.title("Target Selection Accuracy Across All Experiments by Method", fontsize=14)
+    plt.xticks(x_positions + bar_width, experiment_names, rotation=45, ha="right")
+    plt.legend(title="Method", bbox_to_anchor=(1.05, 1), loc='upper left')
+    plt.grid(True, alpha=0.3, axis='y')
+    plt.ylim(0, 110)
+    
+    plt.tight_layout()
+    plt.savefig("../plots/barplots/accuracy_by_experiment_all.png", bbox_inches="tight", dpi=300)
+    plt.savefig("../plots/barplots/accuracy_by_experiment_all.svg", bbox_inches="tight")
+    plt.close()
+    
+    # 2. Individual experiment bar plots
+    individual_experiments = [
+        (1, "Baseline"),
+        (2, "User Position"), 
+        (3, "Obstruction")
+    ]
+    
+    for exp, exp_name in individual_experiments:
+        plt.figure(figsize=(10, 6))
+        
+        exp_data = accuracy_metrics[accuracy_metrics["experiment"] == exp]
+        method_accuracies = []
+        method_stds = []
+        
+        for method in METHODS:
+            method_data = exp_data[exp_data["method"] == method]
+            if not method_data.empty:
+                mean_acc = method_data["accuracy"].mean() * 100
+                std_acc = method_data["accuracy"].std() * 100 if not pd.isna(method_data["accuracy"].std()) else 0
+                method_accuracies.append(mean_acc)
+                method_stds.append(std_acc)
+            else:
+                method_accuracies.append(0)
+                method_stds.append(0)
+        
+        bars = plt.bar(METHODS, method_accuracies, color=[colors[method] for method in METHODS], 
+                      alpha=0.8, yerr=method_stds, capsize=5)
+        
+        plt.ylabel("Accuracy (%)", fontsize=12)
+        plt.title(f"{exp_name} Experiment: Target Selection Accuracy by Method", fontsize=14)
+        plt.grid(True, alpha=0.3, axis='y')
+        plt.ylim(0, 110)
+        
+        # Add experiment-specific subtitle
+        if exp == 1:
+            plt.suptitle("User positioned in center of anchor triangle", fontsize=10, y=0.02)
+        elif exp == 2:
+            plt.suptitle("User positioned ~75cm away from DC0F anchor", fontsize=10, y=0.02)
+        elif exp == 3:
+            plt.suptitle("DC0F anchor occluded by another person", fontsize=10, y=0.02)
+        
+        plt.tight_layout()
+        safe_name = exp_name.lower().replace(" ", "_")
+        plt.savefig(f"../plots/barplots/accuracy_{safe_name}_experiment.png", bbox_inches="tight", dpi=300)
+        plt.savefig(f"../plots/barplots/accuracy_{safe_name}_experiment.svg", bbox_inches="tight")
+        plt.close()
+    
+    # 3. Anchor spacing experiment bar plot
+    spacing_data = accuracy_metrics[accuracy_metrics["experiment"] == 4]
+    if not spacing_data.empty:
+        plt.figure(figsize=(12, 6))
+        
+        spacings = ["2 m", "1 m", "0.5 m"]
+        spacing_colors = {"2 m": "#2E8B57", "1 m": "#FF8C00", "0.5 m": "#DC143C"}  # Green, Orange, Red
+        
+        x_positions = np.arange(len(METHODS))
+        bar_width = 0.25
+        
+        for i, spacing in enumerate(spacings):
+            spacing_subset = spacing_data[spacing_data["spacing"] == spacing]
+            accuracy_values = []
+            error_values = []
+            
+            for method in METHODS:
+                method_data = spacing_subset[spacing_subset["method"] == method]
+                if not method_data.empty:
+                    mean_acc = method_data["accuracy"].mean() * 100
+                    std_acc = method_data["accuracy"].std() * 100 if not pd.isna(method_data["accuracy"].std()) else 0
+                    accuracy_values.append(mean_acc)
+                    error_values.append(std_acc)
+                else:
+                    accuracy_values.append(0)
+                    error_values.append(0)
+            
+            bars = plt.bar(x_positions + i * bar_width, accuracy_values, 
+                          bar_width, label=f"{spacing} spacing", 
+                          color=spacing_colors[spacing], alpha=0.8,
+                          yerr=error_values, capsize=3)
+        
+        plt.xlabel("Method", fontsize=12)
+        plt.ylabel("Accuracy (%)", fontsize=12)
+        plt.title("Anchor Spacing Experiment: Target Selection Accuracy by Spacing Distance", fontsize=14)
+        plt.suptitle("Anchors 5C19 & 96BB repositioned at different distances", fontsize=10, y=0.02)
+        plt.xticks(x_positions + bar_width, METHODS)
+        plt.legend(title="Anchor Spacing", bbox_to_anchor=(1.05, 1), loc='upper left')
+        plt.grid(True, alpha=0.3, axis='y')
+        plt.ylim(0, 110)
+        
+        plt.tight_layout()
+        plt.savefig("../plots/barplots/accuracy_anchor_spacing_experiment.png", bbox_inches="tight", dpi=300)
+        plt.savefig("../plots/barplots/accuracy_anchor_spacing_experiment.svg", bbox_inches="tight")
+        plt.close()
+
+def plot_all_methods_failure_analysis():
+    """Analyze and plot cases where all three methods failed to make correct selections"""
+    os.makedirs("../plots/failure_analysis", exist_ok=True)
+    
+    # Calculate failure rates for each experiment
+    failure_data = []
+    
+    # Define the order: Baseline, User Position, Obstruction, then Spacing (2m, 1m, 0.5m)
+    experiment_order = [
+        (1, "Baseline"),
+        (2, "User Position"),
+        (3, "Obstruction"),
+        (4, "Spacing 2 m", "2 m"),
+        (4, "Spacing 1 m", "1 m"), 
+        (4, "Spacing 0.5 m", "0.5 m")
+    ]
+    
+    for item in experiment_order:
+        if len(item) == 2:  # Regular experiments (1, 2, 3)
+            exp, exp_name = item
+            df_sub = selection_results[selection_results["experiment"] == exp]
+            
+            if not df_sub.empty:
+                # Get predictions for each method for the same selections
+                imu_data = df_sub[df_sub["method"] == "IMU Bearing"]
+                uwb_data = df_sub[df_sub["method"] == "UWB Distance"] 
+                fusion_data = df_sub[df_sub["method"] == "Sensor Fusion"]
+                
+                if len(imu_data) > 0 and len(uwb_data) > 0 and len(fusion_data) > 0:
+                    # Align the data by selection index and run
+                    merged_data = []
+                    for _, imu_row in imu_data.iterrows():
+                        selection_idx = imu_row["selection_index"]
+                        run_idx = imu_row["run"]
+                        file_name = imu_row["file"]
+                        
+                        # Find corresponding rows in other methods
+                        uwb_row = uwb_data[
+                            (uwb_data["selection_index"] == selection_idx) & 
+                            (uwb_data["run"] == run_idx) &
+                            (uwb_data["file"] == file_name)
+                        ]
+                        fusion_row = fusion_data[
+                            (fusion_data["selection_index"] == selection_idx) & 
+                            (fusion_data["run"] == run_idx) &
+                            (fusion_data["file"] == file_name)
+                        ]
+                        
+                        if not uwb_row.empty and not fusion_row.empty:
+                            all_wrong = (imu_row["correct"] == 0 and 
+                                       uwb_row["correct"].iloc[0] == 0 and 
+                                       fusion_row["correct"].iloc[0] == 0)
+                            merged_data.append({
+                                "all_methods_failed": int(all_wrong),
+                                "true_target": imu_row["true"]
+                            })
+                    
+                    if merged_data:
+                        total_selections = len(merged_data)
+                        total_failures = sum(item["all_methods_failed"] for item in merged_data)
+                        failure_rate = (total_failures / total_selections) * 100
+                        
+                        failure_data.append({
+                            "experiment": exp_name,
+                            "failure_rate": failure_rate,
+                            "total_failures": total_failures,
+                            "total_selections": total_selections
+                        })
+                        
+        else:  # Spacing experiments (4)
+            exp, exp_name, spacing = item
+            df_sub = selection_results[
+                (selection_results["experiment"] == exp) &
+                (selection_results["exp4_spacing"] == spacing)
+            ]
+            
+            if not df_sub.empty:
+                # Get predictions for each method
+                imu_data = df_sub[df_sub["method"] == "IMU Bearing"]
+                uwb_data = df_sub[df_sub["method"] == "UWB Distance"] 
+                fusion_data = df_sub[df_sub["method"] == "Sensor Fusion"]
+                
+                if len(imu_data) > 0 and len(uwb_data) > 0 and len(fusion_data) > 0:
+                    # Align the data by selection index and run
+                    merged_data = []
+                    for _, imu_row in imu_data.iterrows():
+                        selection_idx = imu_row["selection_index"]
+                        run_idx = imu_row["run"]
+                        file_name = imu_row["file"]
+                        
+                        # Find corresponding rows in other methods
+                        uwb_row = uwb_data[
+                            (uwb_data["selection_index"] == selection_idx) & 
+                            (uwb_data["run"] == run_idx) &
+                            (uwb_data["file"] == file_name)
+                        ]
+                        fusion_row = fusion_data[
+                            (fusion_data["selection_index"] == selection_idx) & 
+                            (fusion_data["run"] == run_idx) &
+                            (fusion_data["file"] == file_name)
+                        ]
+                        
+                        if not uwb_row.empty and not fusion_row.empty:
+                            all_wrong = (imu_row["correct"] == 0 and 
+                                       uwb_row["correct"].iloc[0] == 0 and 
+                                       fusion_row["correct"].iloc[0] == 0)
+                            merged_data.append({
+                                "all_methods_failed": int(all_wrong),
+                                "true_target": imu_row["true"]
+                            })
+                    
+                    if merged_data:
+                        total_selections = len(merged_data)
+                        total_failures = sum(item["all_methods_failed"] for item in merged_data)
+                        failure_rate = (total_failures / total_selections) * 100
+                        
+                        failure_data.append({
+                            "experiment": exp_name,
+                            "failure_rate": failure_rate,
+                            "total_failures": total_failures,
+                            "total_selections": total_selections
+                        })
+    
+    if not failure_data:
+        print("No failure data found")
+        return
+    
+    df_failures = pd.DataFrame(failure_data)
+    
+    # Create failure rate bar plot
+    plt.figure(figsize=(14, 8))
+    
+    # Define colors - use a red color scheme for failures
+    failure_color = "#DC143C"  # Crimson red
+    
+    experiment_names = df_failures["experiment"].tolist()
+    failure_rates = df_failures["failure_rate"].tolist()
+    
+    bars = plt.bar(experiment_names, failure_rates, color=failure_color, alpha=0.7, 
+                   edgecolor='darkred', linewidth=1)
+    
+    # Add count labels on bars (showing actual number of failures)
+    for bar, failure_rate, total_failures, total_selections in zip(
+        bars, df_failures["failure_rate"], df_failures["total_failures"], df_failures["total_selections"]
+    ):
+        plt.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5, 
+                f'{int(total_failures)}/{int(total_selections)}', 
+                ha='center', va='bottom', fontsize=10, fontweight='bold')
+    
+    plt.xlabel("Experimental Condition", fontsize=12)
+    plt.ylabel("All-Methods Failure Rate (%)", fontsize=12)
+    plt.title("Frequency of Complete Method Failure\n(Cases where IMU Bearing, UWB Distance, AND Sensor Fusion all failed)", fontsize=14)
+    plt.xticks(rotation=45, ha="right")
+    plt.grid(True, alpha=0.3, axis='y')
+    plt.ylim(0, max(failure_rates) * 1.15 if failure_rates else 10)
+    
+    # Add a subtitle explaining what the numbers mean
+    plt.figtext(0.5, 0.02, "Numbers on bars show: failures/total selections", 
+                ha='center', fontsize=10, style='italic')
+    
+    plt.tight_layout()
+    plt.savefig("../plots/failure_analysis/all_methods_failure_rate.png", bbox_inches="tight", dpi=300)
+    plt.savefig("../plots/failure_analysis/all_methods_failure_rate.svg", bbox_inches="tight")
+    plt.close()
+    
+    # Create a second plot: breakdown by target anchor for most challenging experiments
+    challenging_experiments = df_failures.nlargest(3, 'failure_rate')['experiment'].tolist()
+    
+    if challenging_experiments:
+        fig, axes = plt.subplots(1, len(challenging_experiments), figsize=(15, 6))
+        if len(challenging_experiments) == 1:
+            axes = [axes]
+        
+        fig.suptitle("Target-Specific Failure Analysis for Most Challenging Experiments", fontsize=14)
+        
+        for i, exp_name in enumerate(challenging_experiments):
+            # Get failure breakdown by target for this experiment
+            target_failures = {}
+            
+            # Find the corresponding experiment data
+            if exp_name == "Baseline":
+                exp_filter = (selection_results["experiment"] == 1)
+            elif exp_name == "User Position":
+                exp_filter = (selection_results["experiment"] == 2)
+            elif exp_name == "Obstruction":
+                exp_filter = (selection_results["experiment"] == 3)
+            elif "Spacing" in exp_name:
+                spacing = exp_name.split()[-2] + " " + exp_name.split()[-1]  # e.g., "2 m"
+                exp_filter = ((selection_results["experiment"] == 4) & 
+                             (selection_results["exp4_spacing"] == spacing))
+            
+            df_exp = selection_results[exp_filter]
+            
+            if not df_exp.empty:
+                imu_data = df_exp[df_exp["method"] == "IMU Bearing"]
+                uwb_data = df_exp[df_exp["method"] == "UWB Distance"] 
+                fusion_data = df_exp[df_exp["method"] == "Sensor Fusion"]
+                
+                for target in LABELS:  # ["5C19", "DC0F", "96BB"]
+                    target_failures[target] = {"failures": 0, "total": 0}
+                
+                # Count failures by target
+                for _, imu_row in imu_data.iterrows():
+                    if imu_row["true"] in LABELS:
+                        selection_idx = imu_row["selection_index"]
+                        run_idx = imu_row["run"]
+                        file_name = imu_row["file"]
+                        
+                        uwb_row = uwb_data[
+                            (uwb_data["selection_index"] == selection_idx) & 
+                            (uwb_data["run"] == run_idx) &
+                            (uwb_data["file"] == file_name)
+                        ]
+                        fusion_row = fusion_data[
+                            (fusion_data["selection_index"] == selection_idx) & 
+                            (fusion_data["run"] == run_idx) &
+                            (fusion_data["file"] == file_name)
+                        ]
+                        
+                        if not uwb_row.empty and not fusion_row.empty:
+                            target = imu_row["true"]
+                            target_failures[target]["total"] += 1
+                            
+                            all_wrong = (imu_row["correct"] == 0 and 
+                                       uwb_row["correct"].iloc[0] == 0 and 
+                                       fusion_row["correct"].iloc[0] == 0)
+                            if all_wrong:
+                                target_failures[target]["failures"] += 1
+                
+                # Plot target-specific failure rates
+                targets = list(target_failures.keys())
+                failure_rates_by_target = []
+                
+                for target in targets:
+                    if target_failures[target]["total"] > 0:
+                        rate = (target_failures[target]["failures"] / target_failures[target]["total"]) * 100
+                        failure_rates_by_target.append(rate)
+                    else:
+                        failure_rates_by_target.append(0)
+                
+                bars = axes[i].bar(targets, failure_rates_by_target, 
+                                  color=failure_color, alpha=0.7)
+                
+                # Add count labels
+                for j, (bar, target) in enumerate(zip(bars, targets)):
+                    failures = target_failures[target]["failures"]
+                    total = target_failures[target]["total"]
+                    if total > 0:
+                        axes[i].text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1, 
+                                   f'{failures}/{total}', ha='center', va='bottom', fontsize=9)
+                
+                axes[i].set_title(f"{exp_name}", fontsize=12)
+                axes[i].set_ylabel("Failure Rate (%)" if i == 0 else "")
+                axes[i].set_xlabel("Target Anchor")
+                axes[i].grid(True, alpha=0.3, axis='y')
+                axes[i].set_ylim(0, max(failure_rates_by_target) * 1.2 if max(failure_rates_by_target) > 0 else 10)
+        
+        plt.tight_layout()
+        plt.savefig("../plots/failure_analysis/target_specific_failures.png", bbox_inches="tight", dpi=300)
+        plt.savefig("../plots/failure_analysis/target_specific_failures.svg", bbox_inches="tight")
+        plt.close()
+
 if __name__ == "__main__":
     print("Files used:", *sorted(files), sep="\n- ")
     print("\nPer-file accuracies (mean over 20 selections):")
@@ -805,6 +1252,8 @@ if __name__ == "__main__":
     os.makedirs("../plots/comparisons", exist_ok=True)
     os.makedirs("../plots/agreement", exist_ok=True)
     os.makedirs("../plots/spacing", exist_ok=True)
+    os.makedirs("../plots/barplots", exist_ok=True)
+    os.makedirs("../plots/failure_analysis", exist_ok=True)
 
     # Generate all plots
     print("\n=== Generating Basic Line Charts ===")
@@ -819,6 +1268,12 @@ if __name__ == "__main__":
     plot_baseline_comparison()
     plot_fusion_disagreement_analysis()
     plot_spacing_detailed_analysis()
+    
+    print("\n=== Generating Bar Plots ===")
+    plot_accuracy_barplots()
+    
+    print("\n=== Generating Failure Analysis ===")
+    plot_all_methods_failure_analysis()
 
     print("\n=== Plot Generation Complete ===")
     print("Saved line charts in ../plots/linecharts/:")
@@ -835,3 +1290,15 @@ if __name__ == "__main__":
     print("- Spacing analysis: ../plots/spacing/")
     print("  * proximity_confusion_analysis.(png,svg)")
     print("  * accuracy_vs_spacing.(png,svg)")
+    
+    print("\nSaved bar plots:")
+    print("- Overall accuracy comparison: ../plots/barplots/accuracy_by_experiment_all.(png,svg)")
+    print("- Individual experiments: ../plots/barplots/")
+    print("  * accuracy_baseline_experiment.(png,svg)")
+    print("  * accuracy_user_position_experiment.(png,svg)")
+    print("  * accuracy_obstruction_experiment.(png,svg)")
+    print("  * accuracy_anchor_spacing_experiment.(png,svg)")
+    
+    print("\nSaved failure analysis plots:")
+    print("- All-methods failure rates: ../plots/failure_analysis/all_methods_failure_rate.(png,svg)")
+    print("- Target-specific failures: ../plots/failure_analysis/target_specific_failures.(png,svg)")
