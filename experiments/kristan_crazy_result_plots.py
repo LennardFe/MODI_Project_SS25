@@ -178,15 +178,18 @@ def fig1_accuracy_over_selections(out_png="../plots/linecharts/fig1_selections.p
     # Convert to percentage
     df["correct"] = df["correct"] * 100
     
+    plt.figure(figsize=(14, 7))
+    
     # Plot means only, no confidence intervals, with specified order
     g = sns.lineplot(
         data=df, x="selection_index", y="correct", hue="method",
         hue_order=METHODS, errorbar=None, marker="o"
     )
+    
     g.set(
-        xlabel="Selection #", ylabel="Accuracy (%)",
-        title="Selection Accuracy by IMU Bearing, UWB Distance, and Sensor Fusion over All Four Experiments"
+        xlabel="Selection #", ylabel="Accuracy (%)"
     )
+
     g.set_xticks(range(1, SEQ_LEN+1))
     g.set_ylim(0, 120)  # Keep 1.2 ratio but in percentage scale
     g.set_yticks(range(0, 101, 20))  # Only show ticks up to 100%
@@ -320,7 +323,8 @@ def plot_anchor_spacing_experiment(out_png="../plots/linecharts/anchor_spacing_s
     
     ax.set_xlabel("Selection #")
     ax.set_ylabel("Accuracy (%)")
-    ax.set_title("Anchor Spacing Experiment: Selection Accuracy at Different Anchor Spacings")
+    ax.set_title("Anchor Spacing Experiment: Selection Accuracy at Different Anchor Spacings",
+                 fontsize=14, fontweight='bold', pad=15)
     ax.set_xticks(range(1, SEQ_LEN+1))
     ax.set_ylim(0, 120)
     ax.set_yticks(range(0, 101, 20))
@@ -739,7 +743,7 @@ def plot_spacing_detailed_analysis():
         
         ax.set_xlabel("Method", fontsize=12)
         ax.set_ylabel("Confusion Rate (%)", fontsize=12)
-        ax.set_title("Proximity Effect: Confusion Between Close Anchors (5C19, 96BB) Across Spacing Distances", fontsize=14)
+       
         ax.set_xticks(x_positions + bar_width)
         ax.set_xticklabels(METHODS)
         ax.legend(title="Anchor Spacing", fontsize=10)
@@ -978,6 +982,209 @@ def plot_accuracy_barplots():
         plt.savefig("../plots/barplots/accuracy_anchor_spacing_experiment.png", bbox_inches="tight", dpi=300)
         plt.savefig("../plots/barplots/accuracy_anchor_spacing_experiment.svg", bbox_inches="tight")
         plt.close()
+
+def plot_sensor_fusion_potential():
+    """Analyze individual IMU and UWB performance and their combined potential in a single plot."""
+    output_dir = "../plots/fusion_potential"
+    os.makedirs(output_dir, exist_ok=True)
+    
+    # --- Data calculation part (remains the same) ---
+    potential_data = []
+    
+    # Define the order: Baseline, User Position, Obstruction, then Spacing (2m, 1m, 0.5m)
+    experiment_order = [
+        (1, "Baseline"),
+        (2, "User Position"),
+        (3, "Obstruction"),
+        (4, "Spacing 2 m", "2 m"),
+        (4, "Spacing 1 m", "1 m"), 
+        (4, "Spacing 0.5 m", "0.5 m")
+    ]
+    
+    for item in experiment_order:
+        if len(item) == 2:  # Regular experiments (1, 2, 3)
+            exp, exp_name = item
+            df_sub = selection_results[selection_results["experiment"] == exp]
+            
+            if not df_sub.empty:
+                # Get predictions for each method for the same selections
+                imu_data = df_sub[df_sub["method"] == "IMU Bearing"]
+                uwb_data = df_sub[df_sub["method"] == "UWB Distance"] 
+                fusion_data = df_sub[df_sub["method"] == "Sensor Fusion"]
+                
+                if len(imu_data) > 0 and len(uwb_data) > 0 and len(fusion_data) > 0:
+                    # Align the data by selection index and run
+                    aligned_results = []
+                    for _, imu_row in imu_data.iterrows():
+                        selection_idx = imu_row["selection_index"]
+                        run_idx = imu_row["run"]
+                        file_name = imu_row["file"]
+                        
+                        # Find corresponding rows in other methods
+                        uwb_row = uwb_data[
+                            (uwb_data["selection_index"] == selection_idx) & 
+                            (uwb_data["run"] == run_idx) &
+                            (uwb_data["file"] == file_name)
+                        ]
+                        fusion_row = fusion_data[
+                            (fusion_data["selection_index"] == selection_idx) & 
+                            (fusion_data["run"] == run_idx) &
+                            (fusion_data["file"] == file_name)
+                        ]
+                        
+                        if not uwb_row.empty and not fusion_row.empty:
+                            imu_correct = imu_row["correct"] == 1
+                            uwb_correct = uwb_row["correct"].iloc[0] == 1
+                            fusion_correct = fusion_row["correct"].iloc[0] == 1
+                            either_correct = imu_correct or uwb_correct
+                            
+                            aligned_results.append({
+                                "imu_correct": int(imu_correct),
+                                "uwb_correct": int(uwb_correct),
+                                "fusion_correct": int(fusion_correct),
+                                "either_correct": int(either_correct)
+                            })
+                    
+                    if aligned_results:
+                        total_selections = len(aligned_results)
+                        imu_accuracy = sum(item["imu_correct"] for item in aligned_results) / total_selections * 100
+                        uwb_accuracy = sum(item["uwb_correct"] for item in aligned_results) / total_selections * 100
+                        fusion_accuracy = sum(item["fusion_correct"] for item in aligned_results) / total_selections * 100
+                        either_accuracy = sum(item["either_correct"] for item in aligned_results) / total_selections * 100
+                        
+                        potential_data.append({
+                            "experiment": exp_name,
+                            "imu_accuracy": imu_accuracy,
+                            "uwb_accuracy": uwb_accuracy,
+                            "fusion_accuracy": fusion_accuracy,
+                            "either_accuracy": either_accuracy
+                        })
+                        
+        else:  # Spacing experiments (4)
+            exp, exp_name, spacing = item
+            df_sub = selection_results[
+                (selection_results["experiment"] == exp) &
+                (selection_results["exp4_spacing"] == spacing)
+            ]
+            
+            if not df_sub.empty:
+                # Get predictions for each method
+                imu_data = df_sub[df_sub["method"] == "IMU Bearing"]
+                uwb_data = df_sub[df_sub["method"] == "UWB Distance"] 
+                fusion_data = df_sub[df_sub["method"] == "Sensor Fusion"]
+                
+                if len(imu_data) > 0 and len(uwb_data) > 0 and len(fusion_data) > 0:
+                    # Align the data by selection index and run
+                    aligned_results = []
+                    for _, imu_row in imu_data.iterrows():
+                        selection_idx = imu_row["selection_index"]
+                        run_idx = imu_row["run"]
+                        file_name = imu_row["file"]
+                        
+                        # Find corresponding rows in other methods
+                        uwb_row = uwb_data[
+                            (uwb_data["selection_index"] == selection_idx) & 
+                            (uwb_data["run"] == run_idx) &
+                            (uwb_data["file"] == file_name)
+                        ]
+                        fusion_row = fusion_data[
+                            (fusion_data["selection_index"] == selection_idx) & 
+                            (fusion_data["run"] == run_idx) &
+                            (fusion_data["file"] == file_name)
+                        ]
+                        
+                        if not uwb_row.empty and not fusion_row.empty:
+                            imu_correct = imu_row["correct"] == 1
+                            uwb_correct = uwb_row["correct"].iloc[0] == 1
+                            fusion_correct = fusion_row["correct"].iloc[0] == 1
+                            either_correct = imu_correct or uwb_correct
+                            
+                            aligned_results.append({
+                                "imu_correct": int(imu_correct),
+                                "uwb_correct": int(uwb_correct),
+                                "fusion_correct": int(fusion_correct),
+                                "either_correct": int(either_correct)
+                            })
+                    
+                    if aligned_results:
+                        total_selections = len(aligned_results)
+                        imu_accuracy = sum(item["imu_correct"] for item in aligned_results) / total_selections * 100
+                        uwb_accuracy = sum(item["uwb_correct"] for item in aligned_results) / total_selections * 100
+                        fusion_accuracy = sum(item["fusion_correct"] for item in aligned_results) / total_selections * 100
+                        either_accuracy = sum(item["either_correct"] for item in aligned_results) / total_selections * 100
+                        
+                        potential_data.append({
+                            "experiment": exp_name,
+                            "imu_accuracy": imu_accuracy,
+                            "uwb_accuracy": uwb_accuracy,
+                            "fusion_accuracy": fusion_accuracy,
+                            "either_accuracy": either_accuracy
+                        })
+
+    if not potential_data:
+        print("No sensor fusion potential data found")
+        return
+    
+    df_potential = pd.DataFrame(potential_data)
+    
+    # --- New single-plot visualization ---
+    fig, ax = plt.subplots(figsize=(18, 9))
+    
+    experiment_names = df_potential["experiment"].tolist()
+    x = np.arange(len(experiment_names))
+    bar_width = 0.25
+    
+    # Bar 1: IMU Accuracy
+    ax.bar(x - bar_width, df_potential["imu_accuracy"], bar_width, 
+           label="IMU Bearing Accuracy", color="C0", alpha=0.9, edgecolor='black', linewidth=0.5)
+    
+    # Bar 2: UWB Accuracy
+    ax.bar(x, df_potential["uwb_accuracy"], bar_width, 
+           label="UWB Distance Accuracy", color="C1", alpha=0.9, edgecolor='black', linewidth=0.5)
+    
+    # Bar 3: Stacked bar for Fusion Potential
+    fusion_accuracy = df_potential["fusion_accuracy"]
+    untapped_potential = df_potential["either_accuracy"] - fusion_accuracy
+    
+    # Bottom part: Achieved by fusion
+    ax.bar(x + bar_width, fusion_accuracy, bar_width, 
+           label="Sensor Fusion Accuracy", color="C2", alpha=0.9, edgecolor='black', linewidth=0.5)
+    
+    # Top part: Untapped potential
+    ax.bar(x + bar_width, untapped_potential, bar_width, bottom=fusion_accuracy, 
+           label="Sensor Fusion Potential", color="gold", alpha=0.8, hatch='//', edgecolor='black', linewidth=0.5)
+
+    # --- Formatting ---
+    ax.set_ylabel("Accuracy (%)", fontsize=13)
+    ax.set_xticks(x)
+    ax.set_xticklabels(experiment_names, rotation=45, ha="right", fontsize=11)
+    ax.legend(title="Method / Component", loc='upper right', fontsize=10)
+    ax.grid(True, axis='y', linestyle='--', alpha=0.6)
+    ax.set_ylim(0, 115)
+    
+    # Add value labels for clarity
+    for i, row in df_potential.iterrows():
+        # IMU bar label
+        ax.text(x[i] - bar_width, row["imu_accuracy"] + 1, f'{row["imu_accuracy"]:.1f}', ha='center', va='bottom', fontsize=9)
+        # UWB bar label
+        ax.text(x[i], row["uwb_accuracy"] + 1, f'{row["uwb_accuracy"]:.1f}', ha='center', va='bottom', fontsize=9)
+        
+        # Total potential on top of stacked bar (if it's not zero)
+        if row["either_accuracy"] > 0:
+            ax.text(x[i] + bar_width, row["either_accuracy"] + 1, f'{row["either_accuracy"]:.1f}', ha='center', va='bottom', fontsize=9, fontweight='bold', color='darkgreen')
+        
+        # Label for achieved fusion part inside the bar if space allows
+        if row["fusion_accuracy"] > 10:
+             ax.text(x[i] + bar_width, row["fusion_accuracy"] / 2, f'{row["fusion_accuracy"]:.1f}', ha='center', va='center', fontsize=8, color='white', fontweight='bold')
+
+    plt.tight_layout()
+    
+    # Save the new combined plot
+    out_png = os.path.join(output_dir, "sensor_fusion_potential_combined.png")
+    out_svg = os.path.join(output_dir, "sensor_fusion_potential_combined.svg")
+    plt.savefig(out_png, dpi=300)
+    plt.savefig(out_svg)
+    plt.close()
 
 def plot_all_methods_failure_analysis():
     """Analyze and plot cases where all three methods failed to make correct selections"""
@@ -1254,6 +1461,7 @@ if __name__ == "__main__":
     os.makedirs("../plots/spacing", exist_ok=True)
     os.makedirs("../plots/barplots", exist_ok=True)
     os.makedirs("../plots/failure_analysis", exist_ok=True)
+    os.makedirs("../plots/fusion_potential", exist_ok=True)
 
     # Generate all plots
     print("\n=== Generating Basic Line Charts ===")
@@ -1271,6 +1479,9 @@ if __name__ == "__main__":
     
     print("\n=== Generating Bar Plots ===")
     plot_accuracy_barplots()
+    
+    print("\n=== Generating Sensor Fusion Potential Analysis ===")
+    plot_sensor_fusion_potential()
     
     print("\n=== Generating Failure Analysis ===")
     plot_all_methods_failure_analysis()
@@ -1298,6 +1509,9 @@ if __name__ == "__main__":
     print("  * accuracy_user_position_experiment.(png,svg)")
     print("  * accuracy_obstruction_experiment.(png,svg)")
     print("  * accuracy_anchor_spacing_experiment.(png,svg)")
+    
+    print("\nSaved sensor fusion potential analysis:")
+    print("- Combined analysis plot: ../plots/fusion_potential/sensor_fusion_potential_combined.(png,svg)")
     
     print("\nSaved failure analysis plots:")
     print("- All-methods failure rates: ../plots/failure_analysis/all_methods_failure_rate.(png,svg)")
