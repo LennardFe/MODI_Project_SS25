@@ -1163,14 +1163,14 @@ def plot_sensor_fusion_potential():
            label="Sensor Fusion Potential", color="gold", alpha=0.8, hatch='//', edgecolor='black', linewidth=0.5)
 
     # --- Formatting ---
-    ax.set_ylabel("Accuracy (%)", fontsize=16)
+    ax.set_ylabel("Accuracy (%)", fontsize=18)
 
     ax.set_xticks(x)
-    ax.set_xticklabels(experiment_names, rotation=45, ha="right", fontsize=14)
-    ax.tick_params(axis='y', labelsize=14)
+    ax.set_xticklabels(experiment_names, rotation=45, ha="right", fontsize=16)
+    ax.tick_params(axis='y', labelsize=16)
 
     # Legend formatting: title size 14, content size 12
-    legend = ax.legend(title="Method / Component", loc='upper right', title_fontsize=14, fontsize=12)
+    legend = ax.legend(title="Method / Component", loc='upper right', title_fontsize=16, fontsize=14)
 
     ax.grid(True, axis='y', linestyle='--', alpha=0.6)
     ax.set_ylim(0, 115)
