@@ -184,27 +184,30 @@ def fig1_accuracy_over_selections(out_png="../plots/linecharts/fig1_selections.p
     
     plt.figure(figsize=(14, 7))
     
+    # Plot means only, no confidence intervals, with specified order
     g = sns.lineplot(
         data=df, x="selection_index", y="correct", hue="method",
         hue_order=METHODS, errorbar=None, marker="o"
     )
     
-    g.set_xlabel("Selection #", fontsize=16)
-    g.set_ylabel("Accuracy (%)", fontsize=16)
-    
+    g.set(
+        xlabel="Selection #", ylabel="Accuracy (%)"
+    )
     g.set_xticks(range(1, SEQ_LEN+1))
     g.set_ylim(0, 120)
     g.set_yticks(range(0, 101, 20))
+    
     g.tick_params(axis="both", which="major", labelsize=14)
     
     leg = g.legend(title="Method", frameon=True)
-    plt.setp(leg.get_title(), fontsize=14)  # Titel
-    plt.setp(leg.get_texts(), fontsize=12) # Labels
+    plt.setp(leg.get_title(), fontsize=16)  # Titel der Legende
+    plt.setp(leg.get_texts(), fontsize=14) # Labels in der Legende
     
     plt.tight_layout()
     plt.savefig(out_png, bbox_inches="tight")
     plt.savefig(out_svg, bbox_inches="tight")
     plt.close()
+
 
 # =======================
 # INDIVIDUAL EXPERIMENT PLOTS
@@ -696,6 +699,7 @@ def plot_spacing_detailed_analysis():
         print("No spacing experiment data found")
         return
     
+    # 1. Single bar plot for proximity confusion analysis
     spacings = ["2 m", "1 m", "0.5 m"]
     spacing_colors = {"2 m": "#2E8B57", "1 m": "#FF8C00", "0.5 m": "#DC143C"}  # Green, Orange, Red
     
@@ -718,8 +722,10 @@ def plot_spacing_detailed_analysis():
     if confusion_data:
         df_confusion = pd.DataFrame(confusion_data)
         
+        # Create single bar plot
         fig, ax = plt.subplots(1, 1, figsize=(12, 6))
         
+        # Group by method and plot bars for each spacing
         x_positions = np.arange(len(METHODS))
         bar_width = 0.25
         
@@ -738,23 +744,18 @@ def plot_spacing_detailed_analysis():
                          bar_width, label=f"{spacing} spacing", 
                          color=spacing_colors[spacing], alpha=0.8)
             
-            # Larger value labels above bars
+            # Add value labels
             for j, (bar, val) in enumerate(zip(bars, confusion_values)):
                 if val > 0:
                     ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5, 
-                           f'{val:.1f}%', ha='center', va='bottom', fontsize=14, fontweight="medium")
+                           f'{val:.1f}%', ha='center', va='bottom', fontsize=9)
         
-        # --- Formatting with consistent font sizes ---
-        ax.set_ylabel("Confusion Rate (%)", fontsize=16)
+        ax.set_xlabel("Method", fontsize=12)
+        ax.set_ylabel("Confusion Rate (%)", fontsize=12)
        
         ax.set_xticks(x_positions + bar_width)
-        ax.set_xticklabels(METHODS, fontsize=14)
-        ax.tick_params(axis="y", labelsize=14)
-        
-        leg = ax.legend(title="Anchor Spacing", frameon=True)
-        plt.setp(leg.get_title(), fontsize=14)
-        plt.setp(leg.get_texts(), fontsize=12)
-        
+        ax.set_xticklabels(METHODS)
+        ax.legend(title="Anchor Spacing", fontsize=10)
         ax.grid(True, alpha=0.3, axis='y')
         
         plt.tight_layout()
@@ -1163,36 +1164,27 @@ def plot_sensor_fusion_potential():
            label="Sensor Fusion Potential", color="gold", alpha=0.8, hatch='//', edgecolor='black', linewidth=0.5)
 
     # --- Formatting ---
-    ax.set_ylabel("Accuracy (%)", fontsize=16)
-
+    ax.set_ylabel("Accuracy (%)", fontsize=13)
     ax.set_xticks(x)
-    ax.set_xticklabels(experiment_names, rotation=45, ha="right", fontsize=14)
-    ax.tick_params(axis='y', labelsize=14)
-
-    # Legend formatting: title size 14, content size 12
-    legend = ax.legend(title="Method / Component", loc='upper right', title_fontsize=14, fontsize=12)
-
+    ax.set_xticklabels(experiment_names, rotation=45, ha="right", fontsize=11)
+    ax.legend(title="Method / Component", loc='upper right', fontsize=10)
     ax.grid(True, axis='y', linestyle='--', alpha=0.6)
     ax.set_ylim(0, 115)
     
-    # Add value labels for clarity (size 14 now)
+    # Add value labels for clarity
     for i, row in df_potential.iterrows():
         # IMU bar label
-        ax.text(x[i] - bar_width, row["imu_accuracy"] + 1, f'{row["imu_accuracy"]:.1f}',
-                ha='center', va='bottom', fontsize=14)
+        ax.text(x[i] - bar_width, row["imu_accuracy"] + 1, f'{row["imu_accuracy"]:.1f}', ha='center', va='bottom', fontsize=9)
         # UWB bar label
-        ax.text(x[i], row["uwb_accuracy"] + 1, f'{row["uwb_accuracy"]:.1f}',
-                ha='center', va='bottom', fontsize=14)
+        ax.text(x[i], row["uwb_accuracy"] + 1, f'{row["uwb_accuracy"]:.1f}', ha='center', va='bottom', fontsize=9)
         
         # Total potential on top of stacked bar (if it's not zero)
         if row["either_accuracy"] > 0:
-            ax.text(x[i] + bar_width, row["either_accuracy"] + 1, f'{row["either_accuracy"]:.1f}',
-                    ha='center', va='bottom', fontsize=14, fontweight='bold', color='darkgreen')
+            ax.text(x[i] + bar_width, row["either_accuracy"] + 1, f'{row["either_accuracy"]:.1f}', ha='center', va='bottom', fontsize=9, fontweight='bold', color='darkgreen')
         
         # Label for achieved fusion part inside the bar if space allows
         if row["fusion_accuracy"] > 10:
-            ax.text(x[i] + bar_width, row["fusion_accuracy"] / 2, f'{row["fusion_accuracy"]:.1f}',
-                    ha='center', va='center', fontsize=14, color='white', fontweight='bold')
+             ax.text(x[i] + bar_width, row["fusion_accuracy"] / 2, f'{row["fusion_accuracy"]:.1f}', ha='center', va='center', fontsize=8, color='white', fontweight='bold')
 
     plt.tight_layout()
     
