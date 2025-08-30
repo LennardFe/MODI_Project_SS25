@@ -23,7 +23,9 @@ For a comprehensive overview of the project, including methodology, results, and
   </p>
 </div>
 
-[teaser.pdf](https://github.com/user-attachments/files/22058175/teaser.pdf)
+<p align="center" width="100%">
+  <img width="100%" src="https://github.com/user-attachments/assets/e77d6ae9-db1b-4c6a-9d38-81c9a966ceef"/>
+</p>
 
 <div align="justify">
   <p> 
