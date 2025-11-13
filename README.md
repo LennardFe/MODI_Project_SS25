@@ -19,7 +19,7 @@ To what extent can ultra-wideband (UWB) radio and inertial measurement unit (IMU
 
 <div align="justify">
   <p> 
-For a comprehensive overview of the project, including methodology, results, and conclusions, please refer to this [project paper](https://github.com/user-attachments/files/23524928/Obi-Point.Kenobi.pdf). For a quick overview, the following section provides a summary with a descriptive figure and the paper’s abstract.
+For a comprehensive overview of the project, including methodology, results, and conclusions, please refer to this <a href=https://github.com/user-attachments/files/23524928/Obi-Point.Kenobi.pdf>project paper</a>. For a quick overview, the following section provides a summary with a descriptive figure and the paper’s abstract.
   </p>
 </div>
 
